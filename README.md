@@ -49,10 +49,9 @@ flowchart TB
 
 ## Things worth noticing
 
-- **One bean is deliberately wired via classic Spring XML**, not `@Component`: `ReorderRulesEngine`'s implementation (`legacy/reorder-rules-context.xml` + `@ImportResource`) — modeling how a stable, rarely-touched business-rules component might persist in a long-lived enterprise codebase rather than being migrated to annotations for its own sake. It still participates fully in the Boot context (autowirable, runs on a `@Scheduled` job) once loaded.
-- **Redis backs a real cache-aside**, not a decorative one: the inventory low-stock aggregation is the most-read, moderately expensive computed view in the system (hit by the dashboard and by the assistant's inventory tool on nearly every query), invalidated explicitly on writes via `@CacheEvict`. Getting this right in practice surfaced a genuine bug — see below.
+- **One bean is deliberately wired via classic Spring XML**
+- **Redis backs a real cache-aside**, not a decorative one: the inventory low-stock aggregation is the most-read, moderately expensive computed view in the system (hit by the dashboard and by the assistant's inventory tool on nearly every query).
 - **The assistant uses tool-calling over four fixed, read-only queries, not RAG.** The household a query is scoped to always comes from the authenticated caller's JWT, server-side — the model never supplies or chooses it, so there's no path for a prompt to leak another household's data.
-- **JWT auth with 4 roles** (Owner/Principal, House Manager, Staff, Vendor) mapped to real family-office personas, with household-scoping enforced as an explicit guard clause rather than left implicit, and approval decisions additionally require being the *specific* assigned principal — not just any Owner.
 
 
 ## Tech stack
