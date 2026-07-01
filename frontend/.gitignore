@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Node runtime downloaded locally by frontend-maven-plugin (mvn package -Pbundle-frontend)
+node
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

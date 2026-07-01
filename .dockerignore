@@ -1,0 +1,5 @@
+.git
+.claude
+backend/target
+frontend/node_modules
+frontend/dist
