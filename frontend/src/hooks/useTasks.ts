@@ -1,0 +1,59 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { apiClient } from '../api/client'
+import { useAuth } from '../auth/AuthContext'
+import type { HouseholdTask, PageResponse, TaskStatus } from '../types'
+
+export function useTasks() {
+  const { auth } = useAuth()
+  const householdId = auth!.householdId
+
+  return useQuery({
+    queryKey: ['tasks', householdId],
+    queryFn: async () => {
+      const { data } = await apiClient.get<PageResponse<HouseholdTask>>(
+        `/households/${householdId}/tasks`,
+        { params: { size: 100 } },
+      )
+      return data.content
+    },
+  })
+}
+
+export function useUpdateTaskStatus() {
+  const queryClient = useQueryClient()
+  const { auth } = useAuth()
+
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: TaskStatus }) => {
+      const { data } = await apiClient.patch<HouseholdTask>(`/tasks/${id}`, { status })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', auth!.householdId] })
+      queryClient.invalidateQueries({ queryKey: ['approvals', auth!.householdId] })
+    },
+  })
+}
+
+export function useCreateTask() {
+  const queryClient = useQueryClient()
+  const { auth } = useAuth()
+  const householdId = auth!.householdId
+
+  return useMutation({
+    mutationFn: async (input: {
+      title: string
+      description?: string
+      assignedToId?: string
+      dueDate?: string
+      estimatedCost?: number
+    }) => {
+      const { data } = await apiClient.post<HouseholdTask>(`/households/${householdId}/tasks`, input)
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', householdId] })
+      queryClient.invalidateQueries({ queryKey: ['approvals', householdId] })
+    },
+  })
+}
