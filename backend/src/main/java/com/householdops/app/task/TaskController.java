@@ -19,6 +19,7 @@ import com.householdops.app.approval.ApprovalService;
 import com.householdops.app.approval.ApprovalSubjectType;
 import com.householdops.app.security.AuthenticatedPrincipal;
 import com.householdops.app.security.SecurityAssertions;
+import com.householdops.app.staff.StaffRole;
 import com.householdops.app.task.TaskDtos.CreateTaskRequest;
 import com.householdops.app.task.TaskDtos.TaskResponse;
 import com.householdops.app.task.TaskDtos.UpdateTaskRequest;
@@ -63,6 +64,9 @@ public class TaskController {
             @Valid @RequestBody CreateTaskRequest request,
             @AuthenticationPrincipal AuthenticatedPrincipal principal) {
         SecurityAssertions.requireHousehold(principal, householdId);
+        if (request.assignedToId() != null) {
+            SecurityAssertions.requireRole(principal, StaffRole.OWNER, StaffRole.HOUSE_MANAGER);
+        }
         return toResponse(taskService.create(householdId, principal.getStaffId(), request));
     }
 
@@ -71,6 +75,9 @@ public class TaskController {
             @PathVariable UUID id,
             @RequestBody UpdateTaskRequest request,
             @AuthenticationPrincipal AuthenticatedPrincipal principal) {
+        if (request.assignedToId() != null) {
+            SecurityAssertions.requireRole(principal, StaffRole.OWNER, StaffRole.HOUSE_MANAGER);
+        }
         return toResponse(taskService.update(id, principal.getHouseholdId(), request));
     }
 

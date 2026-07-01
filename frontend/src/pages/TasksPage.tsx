@@ -1,14 +1,21 @@
 import { useState } from 'react'
 import { useAssignTask, useCreateTask, useTasks, useUpdateTaskStatus } from '../hooks/useTasks'
 import { useStaff } from '../hooks/useStaff'
+import { useAuth } from '../auth/AuthContext'
 import type { HouseholdTask, TaskStatus } from '../types'
 
 const STATUS_OPTIONS: TaskStatus[] = ['OPEN', 'IN_PROGRESS', 'BLOCKED', 'DONE', 'CANCELLED']
+
+/** Only an Owner/House Manager may assign tasks -- enforced server-side too (TaskController), this just keeps the control from being shown to roles that can't use it. */
+function canAssignTasks(role: string | undefined) {
+  return role === 'OWNER' || role === 'HOUSE_MANAGER'
+}
 
 function TaskRow({ task }: { task: HouseholdTask }) {
   const updateStatus = useUpdateTaskStatus()
   const assignTask = useAssignTask()
   const staff = useStaff()
+  const { auth } = useAuth()
   const assignee = staff.data?.find((s) => s.id === task.assignedToId)
 
   return (
@@ -22,21 +29,25 @@ function TaskRow({ task }: { task: HouseholdTask }) {
         </p>
       </div>
       <div className="flex items-center gap-2">
-        <select
-          value={task.assignedToId ?? ''}
-          disabled={assignTask.isPending || staff.isLoading}
-          onChange={(e) => e.target.value && assignTask.mutate({ id: task.id, assignedToId: e.target.value })}
-          className="rounded border border-slate-300 px-2 py-1 text-sm"
-        >
-          <option value="" disabled>
-            {assignee ? assignee.fullName : 'Unassigned'}
-          </option>
-          {staff.data?.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.fullName}
+        {canAssignTasks(auth?.role) ? (
+          <select
+            value={task.assignedToId ?? ''}
+            disabled={assignTask.isPending || staff.isLoading}
+            onChange={(e) => e.target.value && assignTask.mutate({ id: task.id, assignedToId: e.target.value })}
+            className="rounded border border-slate-300 px-2 py-1 text-sm"
+          >
+            <option value="" disabled>
+              {assignee ? assignee.fullName : 'Unassigned'}
             </option>
-          ))}
-        </select>
+            {staff.data?.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.fullName}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span className="text-sm text-slate-500">{assignee ? assignee.fullName : 'Unassigned'}</span>
+        )}
         <select
           value={task.status}
           disabled={updateStatus.isPending}
@@ -57,6 +68,7 @@ function TaskRow({ task }: { task: HouseholdTask }) {
 function NewTaskForm() {
   const createTask = useCreateTask()
   const staff = useStaff()
+  const { auth } = useAuth()
   const [title, setTitle] = useState('')
   const [assignedToId, setAssignedToId] = useState('')
   const [dueDate, setDueDate] = useState('')
@@ -83,21 +95,23 @@ function NewTaskForm() {
         <label className="block text-xs text-slate-500">Title</label>
         <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded border border-slate-300 px-2 py-1 text-sm" />
       </div>
-      <div>
-        <label className="block text-xs text-slate-500">Assign to</label>
-        <select
-          value={assignedToId}
-          onChange={(e) => setAssignedToId(e.target.value)}
-          className="rounded border border-slate-300 px-2 py-1 text-sm"
-        >
-          <option value="">Unassigned</option>
-          {staff.data?.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.fullName}
-            </option>
-          ))}
-        </select>
-      </div>
+      {canAssignTasks(auth?.role) && (
+        <div>
+          <label className="block text-xs text-slate-500">Assign to</label>
+          <select
+            value={assignedToId}
+            onChange={(e) => setAssignedToId(e.target.value)}
+            className="rounded border border-slate-300 px-2 py-1 text-sm"
+          >
+            <option value="">Unassigned</option>
+            {staff.data?.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.fullName}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <div>
         <label className="block text-xs text-slate-500">Due date</label>
         <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="rounded border border-slate-300 px-2 py-1 text-sm" />

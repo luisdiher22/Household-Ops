@@ -50,7 +50,7 @@ public class SecurityConfig {
                         // The bundled React app's shell (mvn package -Pbundle-frontend):
                         // publicly loadable like any static site. Actual data access is
                         // still enforced at the /api/** layer above, not here.
-                        .requestMatchers("/", "/login", "/tasks", "/shopping-list", "/approvals", "/assistant").permitAll()
+                        .requestMatchers("/", "/login", "/tasks", "/inventory", "/shopping-list", "/approvals", "/assistant").permitAll()
                         .requestMatchers("/assets/**", "/index.html", "/favicon.svg").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

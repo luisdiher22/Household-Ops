@@ -4,6 +4,7 @@ import { Layout } from './components/Layout'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { TasksPage } from './pages/TasksPage'
+import { InventoryPage } from './pages/InventoryPage'
 import { ShoppingListPage } from './pages/ShoppingListPage'
 import { ApprovalsPage } from './pages/ApprovalsPage'
 import { AssistantPage } from './pages/AssistantPage'
@@ -16,6 +17,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/shopping-list" element={<ShoppingListPage />} />
           <Route path="/approvals" element={<ApprovalsPage />} />
           <Route path="/assistant" element={<AssistantPage />} />
