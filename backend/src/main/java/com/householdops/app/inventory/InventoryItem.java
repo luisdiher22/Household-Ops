@@ -1,6 +1,8 @@
 package com.householdops.app.inventory;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 
 import com.householdops.app.common.Auditable;
 import com.householdops.app.household.Household;
@@ -48,4 +50,13 @@ public class InventoryItem extends Auditable {
     private int reorderQuantity;
 
     private Instant lastRestockedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "preferred_vendor_id")
+    private Vendor preferredVendor;
+
+    @Column(precision = 12, scale = 2)
+    private BigDecimal unitCost;
+
+    private LocalDate expirationDate;
 }

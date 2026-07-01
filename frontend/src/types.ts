@@ -60,6 +60,13 @@ export interface InventoryItem {
   reorderQuantity: number
   lowStock: boolean
   lastRestockedAt: string | null
+  vendorId: string | null
+  vendorName: string | null
+  unitCost: number | null
+  totalValue: number | null
+  expirationDate: string | null
+  expiringSoon: boolean
+  predictedDaysUntilEmpty: number | null
 }
 
 export interface InventoryStatus {
@@ -67,6 +74,48 @@ export interface InventoryStatus {
   totalItems: number
   lowStockCount: number
   lowStockItems: InventoryItem[]
+  expiringSoonItems: InventoryItem[]
+  runningOutSoonItems: InventoryItem[]
+}
+
+export interface Vendor {
+  id: string
+  householdId: string
+  name: string
+  contactEmail: string | null
+  contactPhone: string | null
+  notes: string | null
+}
+
+export type AdjustmentReason = 'INITIAL' | 'RESTOCK' | 'CONSUMPTION' | 'MANUAL_CORRECTION'
+
+export interface InventoryAdjustment {
+  id: string
+  inventoryItemId: string
+  previousQuantity: number
+  newQuantity: number
+  delta: number
+  reason: AdjustmentReason
+  adjustedById: string | null
+  adjustedByName: string | null
+  occurredAt: string
+}
+
+export interface CategoryValuation {
+  category: string
+  totalValue: number
+  itemCount: number
+}
+
+export interface ValuationResponse {
+  householdId: string
+  totalValue: number
+  byCategory: CategoryValuation[]
+}
+
+export interface ImportResult {
+  imported: number
+  errors: string[]
 }
 
 export interface ShoppingListItem {

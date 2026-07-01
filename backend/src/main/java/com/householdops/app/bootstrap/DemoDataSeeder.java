@@ -1,7 +1,9 @@
 package com.householdops.app.bootstrap;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -15,8 +17,16 @@ import com.householdops.app.household.HouseholdDtos.CreateHouseholdRequest;
 import com.householdops.app.household.HouseholdDtos.UpdateHouseholdRequest;
 import com.householdops.app.household.HouseholdRepository;
 import com.householdops.app.household.HouseholdService;
+import com.householdops.app.inventory.AdjustmentReason;
+import com.householdops.app.inventory.InventoryAdjustment;
+import com.householdops.app.inventory.InventoryAdjustmentRepository;
 import com.householdops.app.inventory.InventoryDtos.CreateInventoryItemRequest;
+import com.householdops.app.inventory.InventoryDtos.InventoryItemResponse;
+import com.householdops.app.inventory.InventoryItem;
 import com.householdops.app.inventory.InventoryService;
+import com.householdops.app.inventory.Vendor;
+import com.householdops.app.inventory.VendorDtos.CreateVendorRequest;
+import com.householdops.app.inventory.VendorService;
 import com.householdops.app.shoppinglist.ShoppingListDtos.CreateShoppingListItemRequest;
 import com.householdops.app.shoppinglist.ShoppingListService;
 import com.householdops.app.staff.StaffMember;
@@ -43,6 +53,8 @@ public class DemoDataSeeder implements CommandLineRunner {
     private final HouseholdService householdService;
     private final StaffMemberService staffMemberService;
     private final InventoryService inventoryService;
+    private final VendorService vendorService;
+    private final InventoryAdjustmentRepository adjustmentRepository;
     private final TaskService taskService;
     private final ShoppingListService shoppingListService;
 
@@ -51,12 +63,16 @@ public class DemoDataSeeder implements CommandLineRunner {
             HouseholdService householdService,
             StaffMemberService staffMemberService,
             InventoryService inventoryService,
+            VendorService vendorService,
+            InventoryAdjustmentRepository adjustmentRepository,
             TaskService taskService,
             ShoppingListService shoppingListService) {
         this.householdRepository = householdRepository;
         this.householdService = householdService;
         this.staffMemberService = staffMemberService;
         this.inventoryService = inventoryService;
+        this.vendorService = vendorService;
+        this.adjustmentRepository = adjustmentRepository;
         this.taskService = taskService;
         this.shoppingListService = shoppingListService;
     }
@@ -84,9 +100,25 @@ public class DemoDataSeeder implements CommandLineRunner {
 
         householdService.update(householdId, new UpdateHouseholdRequest(null, null, null, null, owner.getId()));
 
-        inventoryService.create(householdId, new CreateInventoryItemRequest("Olive Oil", "PANTRY", 2, "bottles", 3, 4));
-        inventoryService.create(householdId, new CreateInventoryItemRequest("Paper Towels", "CLEANING", 10, "rolls", 4, 12));
-        inventoryService.create(householdId, new CreateInventoryItemRequest("Pool Chlorine", "MAINTENANCE_SUPPLY", 1, "buckets", 2, 3));
+        Vendor freshMarket = vendorService.create(householdId,
+                new CreateVendorRequest("Fresh Market Co.", "orders@freshmarketco.example", "555-0101", "Weekly grocery delivery"));
+        Vendor cleanPro = vendorService.create(householdId,
+                new CreateVendorRequest("CleanPro Supplies", "sales@cleanpro.example", "555-0102", null));
+
+        InventoryItemResponse oliveOil = inventoryService.create(householdId, owner.getId(), new CreateInventoryItemRequest(
+                "Olive Oil", "PANTRY", 2, "bottles", 3, 4, freshMarket.getId(), BigDecimal.valueOf(18.50), null));
+        inventoryService.create(householdId, owner.getId(), new CreateInventoryItemRequest(
+                "Paper Towels", "CLEANING", 10, "rolls", 4, 12, cleanPro.getId(), BigDecimal.valueOf(2.25), null));
+        inventoryService.create(householdId, owner.getId(), new CreateInventoryItemRequest(
+                "Pool Chlorine", "MAINTENANCE_SUPPLY", 1, "buckets", 2, 3, null, BigDecimal.valueOf(45.00), null));
+        inventoryService.create(householdId, owner.getId(), new CreateInventoryItemRequest(
+                "Champagne (Dom Perignon)", "WINE_CELLAR", 6, "bottles", 2, 6, freshMarket.getId(), BigDecimal.valueOf(220.00),
+                LocalDate.now().plusDays(10)));
+
+        // Backdated consumption history so the "days until empty" prediction has
+        // something to compute from immediately, without waiting on real usage.
+        seedConsumptionHistory(aspen, oliveOil.id(), 6, 4, 10);
+        seedConsumptionHistory(aspen, oliveOil.id(), 4, 2, 5);
 
         taskService.create(householdId, manager.getId(), new CreateTaskRequest(
                 "Restock pantry", "Weekly grocery run", staff.getId(),
@@ -101,7 +133,22 @@ public class DemoDataSeeder implements CommandLineRunner {
         shoppingListService.create(householdId, staff.getId(), new CreateShoppingListItemRequest(
                 "Dry cleaning pickup", 1, BigDecimal.valueOf(40), null));
 
-        log.info("Seeded demo household '{}' ({}) with 4 staff, 3 inventory items, 2 tasks, 1 shopping item", aspen.getName(), householdId);
+        log.info("Seeded demo household '{}' ({}) with 4 staff, 2 vendors, 4 inventory items, 2 tasks, 1 shopping item", aspen.getName(), householdId);
         log.info("Demo login credentials (password for all: '{}'): owner@householdops.dev, manager@householdops.dev, staff@householdops.dev, vendor@householdops.dev", DEMO_PASSWORD);
+    }
+
+    private void seedConsumptionHistory(Household household, UUID inventoryItemId, int previousQuantity, int newQuantity, int daysAgo) {
+        InventoryItem item = inventoryService.getById(inventoryItemId, household.getId());
+
+        InventoryAdjustment adjustment = new InventoryAdjustment();
+        adjustment.setInventoryItem(item);
+        adjustment.setHousehold(household);
+        adjustment.setPreviousQuantity(previousQuantity);
+        adjustment.setNewQuantity(newQuantity);
+        adjustment.setDelta(newQuantity - previousQuantity);
+        adjustment.setReason(AdjustmentReason.CONSUMPTION);
+        adjustment.setOccurredAt(Instant.now().minus(daysAgo, ChronoUnit.DAYS));
+
+        adjustmentRepository.save(adjustment);
     }
 }

@@ -50,7 +50,7 @@ public class AssistantTools {
     private final ApprovalService approvalService;
     private final ShoppingListService shoppingListService;
 
-    @Tool(description = "Get current inventory levels and low-stock items for the caller's household")
+    @Tool(description = "Get current inventory levels for the caller's household: low-stock items, items expiring soon, and items predicted to run out within a week based on recent consumption")
     public InventoryStatusResponse getInventoryStatus(ToolContext toolContext) {
         UUID householdId = householdId(toolContext);
         record(toolContext, "getInventoryStatus", "household=" + householdId);

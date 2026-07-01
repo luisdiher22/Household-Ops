@@ -26,6 +26,11 @@ export function DashboardPage() {
 
   const openTasks = tasks.data?.filter((t) => t.status === 'OPEN' || t.status === 'IN_PROGRESS').length ?? 0
 
+  const needsAttentionIds = new Set([
+    ...(inventoryStatus.data?.expiringSoonItems.map((i) => i.id) ?? []),
+    ...(inventoryStatus.data?.runningOutSoonItems.map((i) => i.id) ?? []),
+  ])
+
   return (
     <div className="space-y-6">
       <div>
@@ -33,12 +38,18 @@ export function DashboardPage() {
         <p className="text-sm text-slate-500">Here's what's happening with the household.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
         <SummaryCard
           title="Low stock items"
           value={inventoryStatus.isLoading ? '...' : (inventoryStatus.data?.lowStockCount ?? 0)}
-          to="/shopping-list"
+          to="/inventory"
           tone={(inventoryStatus.data?.lowStockCount ?? 0) > 0 ? 'warning' : 'default'}
+        />
+        <SummaryCard
+          title="Expiring / running out soon"
+          value={inventoryStatus.isLoading ? '...' : needsAttentionIds.size}
+          to="/inventory"
+          tone={needsAttentionIds.size > 0 ? 'warning' : 'default'}
         />
         <SummaryCard title="Open tasks" value={tasks.isLoading ? '...' : openTasks} to="/tasks" tone="default" />
         <SummaryCard

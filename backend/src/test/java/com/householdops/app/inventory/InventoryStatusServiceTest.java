@@ -19,10 +19,14 @@ class InventoryStatusServiceTest {
 
     @Mock
     private InventoryRepository inventoryRepository;
+    @Mock
+    private VendorRepository vendorRepository;
+    @Mock
+    private InventoryAdjustmentRepository adjustmentRepository;
 
     @Test
     void flagsOnlyItemsAtOrBelowTheirOwnThreshold() {
-        InventoryStatusService service = new InventoryStatusService(inventoryRepository);
+        InventoryStatusService service = new InventoryStatusService(inventoryRepository, vendorRepository, adjustmentRepository);
         UUID householdId = UUID.randomUUID();
         Household household = new Household();
         household.setId(householdId);
@@ -32,6 +36,8 @@ class InventoryStatusServiceTest {
         InventoryItem exactlyAtThreshold = item(household, "Pool Chlorine", 2, 2);
 
         when(inventoryRepository.findByHouseholdId(householdId)).thenReturn(List.of(lowStock, wellStocked, exactlyAtThreshold));
+        when(vendorRepository.findByHouseholdId(householdId)).thenReturn(List.of());
+        when(adjustmentRepository.findByHouseholdIdAndReason(householdId, AdjustmentReason.CONSUMPTION)).thenReturn(List.of());
 
         InventoryStatusResponse status = service.computeStatus(householdId);
 
