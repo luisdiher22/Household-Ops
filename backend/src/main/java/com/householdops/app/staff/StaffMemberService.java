@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.householdops.app.common.exception.ResourceNotFoundException;
 import com.householdops.app.household.Household;
 import com.householdops.app.household.HouseholdRepository;
+import com.householdops.app.security.SecurityAssertions;
 import com.householdops.app.staff.StaffMemberDtos.CreateStaffMemberRequest;
 import com.householdops.app.staff.StaffMemberDtos.UpdateStaffMemberRequest;
 
@@ -29,9 +30,11 @@ public class StaffMemberService {
     }
 
     @Transactional(readOnly = true)
-    public StaffMember getById(UUID id) {
-        return staffMemberRepository.findById(id)
+    public StaffMember getById(UUID id, UUID callerHouseholdId) {
+        StaffMember staffMember = staffMemberRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Staff member not found: " + id));
+        SecurityAssertions.requireHousehold(callerHouseholdId, staffMember.getHousehold().getId());
+        return staffMember;
     }
 
     @Transactional
@@ -50,8 +53,8 @@ public class StaffMemberService {
     }
 
     @Transactional
-    public StaffMember update(UUID id, UpdateStaffMemberRequest request) {
-        StaffMember staffMember = getById(id);
+    public StaffMember update(UUID id, UUID callerHouseholdId, UpdateStaffMemberRequest request) {
+        StaffMember staffMember = getById(id, callerHouseholdId);
 
         if (request.fullName() != null) {
             staffMember.setFullName(request.fullName());

@@ -88,18 +88,18 @@ public class DemoDataSeeder implements CommandLineRunner {
         inventoryService.create(householdId, new CreateInventoryItemRequest("Paper Towels", "CLEANING", 10, "rolls", 4, 12));
         inventoryService.create(householdId, new CreateInventoryItemRequest("Pool Chlorine", "MAINTENANCE_SUPPLY", 1, "buckets", 2, 3));
 
-        taskService.create(householdId, new CreateTaskRequest(
-                "Restock pantry", "Weekly grocery run", staff.getId(), manager.getId(),
+        taskService.create(householdId, manager.getId(), new CreateTaskRequest(
+                "Restock pantry", "Weekly grocery run", staff.getId(),
                 LocalDate.now().plusDays(3), BigDecimal.valueOf(150)));
 
         // Estimated cost (800) exceeds the household's approval threshold (250),
         // so this seeds a real PENDING ApprovalRequest via TaskService's own logic.
-        taskService.create(householdId, new CreateTaskRequest(
-                "Repair pool pump", "Pump is making noise, needs a technician", null, manager.getId(),
+        taskService.create(householdId, manager.getId(), new CreateTaskRequest(
+                "Repair pool pump", "Pump is making noise, needs a technician", null,
                 LocalDate.now().plusDays(5), BigDecimal.valueOf(800)));
 
-        shoppingListService.create(householdId, new CreateShoppingListItemRequest(
-                "Dry cleaning pickup", 1, BigDecimal.valueOf(40), null, staff.getId()));
+        shoppingListService.create(householdId, staff.getId(), new CreateShoppingListItemRequest(
+                "Dry cleaning pickup", 1, BigDecimal.valueOf(40), null));
 
         log.info("Seeded demo household '{}' ({}) with 4 staff, 3 inventory items, 2 tasks, 1 shopping item", aspen.getName(), householdId);
         log.info("Demo login credentials (password for all: '{}'): owner@householdops.dev, manager@householdops.dev, staff@householdops.dev, vendor@householdops.dev", DEMO_PASSWORD);

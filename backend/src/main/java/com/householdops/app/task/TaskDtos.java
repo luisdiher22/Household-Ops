@@ -37,14 +37,10 @@ public class TaskDtos {
         }
     }
 
-    // createdById is passed explicitly for now since there's no authenticated
-    // principal yet (Week 1, pre-security) — Week 2 derives it from the JWT
-    // instead and drops it from this request.
     public record CreateTaskRequest(
             @NotBlank String title,
             String description,
             UUID assignedToId,
-            UUID createdById,
             LocalDate dueDate,
             BigDecimal estimatedCost) {
     }

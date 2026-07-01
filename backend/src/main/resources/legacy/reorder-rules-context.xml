@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Classic XML bean definition for the inventory reorder-rules engine.
+
+    This is intentionally NOT migrated to @Component/@Configuration: it's the
+    kind of stable, rarely-touched business-rules component a long-lived
+    enterprise codebase plausibly keeps frozen in XML for years, owned by a
+    different team than the day-to-day REST layer. Imported into the Boot
+    context via com.householdops.app.config.LegacyRulesXmlConfig.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="reorderRulesEngine" class="com.householdops.app.legacy.DefaultReorderRulesEngine">
+        <!-- Multiplies each item's configured reorderQuantity (e.g. 1.5 = order 50% more than the base amount) -->
+        <constructor-arg index="0" value="1.0"/>
+        <!-- Flat units added on top, as a buffer against the lag between ordering and delivery -->
+        <constructor-arg index="1" value="2"/>
+    </bean>
+
+</beans>

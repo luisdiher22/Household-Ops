@@ -1,6 +1,5 @@
 package com.householdops.app.household;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -20,11 +19,6 @@ public class HouseholdService {
 
     private final HouseholdRepository householdRepository;
     private final StaffMemberRepository staffMemberRepository;
-
-    @Transactional(readOnly = true)
-    public List<Household> findAll() {
-        return householdRepository.findAll();
-    }
 
     @Transactional(readOnly = true)
     public Household getById(UUID id) {

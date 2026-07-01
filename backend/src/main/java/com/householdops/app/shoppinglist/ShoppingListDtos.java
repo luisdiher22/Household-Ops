@@ -33,14 +33,11 @@ public class ShoppingListDtos {
         }
     }
 
-    // requestedById is passed explicitly for now, same as CreateTaskRequest.createdById
-    // (no authenticated principal yet — Week 2 derives it from the JWT).
     public record CreateShoppingListItemRequest(
             @NotBlank String description,
             @Positive int quantity,
             BigDecimal estimatedCost,
-            UUID inventoryItemId,
-            UUID requestedById) {
+            UUID inventoryItemId) {
     }
 
     public record UpdateShoppingListItemStatusRequest(ShoppingListItemStatus status) {

@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,9 +78,16 @@ public class ApprovalService {
     }
 
     @Transactional
-    public ApprovalRequest decide(UUID id, DecideApprovalRequest decision) {
+    public ApprovalRequest decide(UUID id, UUID callerStaffId, DecideApprovalRequest decision) {
         ApprovalRequest request = approvalRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Approval request not found: " + id));
+
+        // Being an OWNER isn't enough on its own -- must be the specific
+        // principal this request was raised against (an owner of a different
+        // household shouldn't be able to decide it).
+        if (!request.getPrincipal().getId().equals(callerStaffId)) {
+            throw new AccessDeniedException("Only the assigned principal can decide approval request " + id);
+        }
 
         if (request.getStatus() != ApprovalStatus.PENDING) {
             throw new BusinessRuleViolationException("Approval request " + id + " has already been decided");

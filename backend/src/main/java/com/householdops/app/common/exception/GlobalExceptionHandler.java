@@ -6,10 +6,14 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+
+import io.jsonwebtoken.JwtException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -22,6 +26,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessRuleViolationException.class)
     public ResponseEntity<ApiError> handleConflict(BusinessRuleViolationException ex, WebRequest request) {
         return build(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex, WebRequest request) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler({AuthenticationException.class, JwtException.class})
+    public ResponseEntity<ApiError> handleAuthentication(Exception ex, WebRequest request) {
+        return build(HttpStatus.UNAUTHORIZED, "Authentication failed: " + ex.getMessage(), request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
