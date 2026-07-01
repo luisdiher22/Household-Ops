@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.householdops.app.household.Household;
+import com.householdops.app.household.HouseholdAccessGrant;
+import com.householdops.app.household.HouseholdAccessGrantRepository;
 import com.householdops.app.household.HouseholdDtos.CreateHouseholdRequest;
 import com.householdops.app.household.HouseholdDtos.UpdateHouseholdRequest;
 import com.householdops.app.household.HouseholdRepository;
@@ -51,6 +53,7 @@ public class DemoDataSeeder implements CommandLineRunner {
 
     private final HouseholdRepository householdRepository;
     private final HouseholdService householdService;
+    private final HouseholdAccessGrantRepository accessGrantRepository;
     private final StaffMemberService staffMemberService;
     private final InventoryService inventoryService;
     private final VendorService vendorService;
@@ -61,6 +64,7 @@ public class DemoDataSeeder implements CommandLineRunner {
     public DemoDataSeeder(
             HouseholdRepository householdRepository,
             HouseholdService householdService,
+            HouseholdAccessGrantRepository accessGrantRepository,
             StaffMemberService staffMemberService,
             InventoryService inventoryService,
             VendorService vendorService,
@@ -69,6 +73,7 @@ public class DemoDataSeeder implements CommandLineRunner {
             ShoppingListService shoppingListService) {
         this.householdRepository = householdRepository;
         this.householdService = householdService;
+        this.accessGrantRepository = accessGrantRepository;
         this.staffMemberService = staffMemberService;
         this.inventoryService = inventoryService;
         this.vendorService = vendorService;
@@ -135,6 +140,44 @@ public class DemoDataSeeder implements CommandLineRunner {
 
         log.info("Seeded demo household '{}' ({}) with 4 staff, 2 vendors, 4 inventory items, 2 tasks, 1 shopping item", aspen.getName(), householdId);
         log.info("Demo login credentials (password for all: '{}'): owner@householdops.dev, manager@householdops.dev, staff@householdops.dev, vendor@householdops.dev", DEMO_PASSWORD);
+
+        seedSecondProperty(owner);
+    }
+
+    /**
+     * A second household with its own local staff, granted to the Aspen
+     * owner via HouseholdAccessGrant -- gives the portfolio overview
+     * (PortfolioController) something real to show: one Owner, two
+     * properties, each with its own on-the-ground manager but the same
+     * approval authority.
+     */
+    private void seedSecondProperty(StaffMember ownerAcrossProperties) {
+        Household miami = householdService.create(
+                new CreateHouseholdRequest("Miami Beach Villa", "88 Ocean Drive, Miami Beach, FL", "America/New_York", BigDecimal.valueOf(250)));
+        UUID miamiId = miami.getId();
+
+        StaffMember miamiManager = staffMemberService.create(miamiId,
+                new CreateStaffMemberRequest("Sofia Reyes", "manager-miami@householdops.dev", DEMO_PASSWORD, StaffRole.HOUSE_MANAGER));
+
+        // Same principal as Aspen House -- one Owner across both properties,
+        // consistent with what HouseholdAccessGrant models below.
+        householdService.update(miamiId, new UpdateHouseholdRequest(null, null, null, null, ownerAcrossProperties.getId()));
+
+        Vendor oceanSupply = vendorService.create(miamiId,
+                new CreateVendorRequest("Ocean Supply Co.", "orders@oceansupply.example", "555-0201", "Pool and dock maintenance"));
+
+        inventoryService.create(miamiId, miamiManager.getId(), new CreateInventoryItemRequest(
+                "Pool Salt", "MAINTENANCE_SUPPLY", 1, "bags", 2, 4, oceanSupply.getId(), BigDecimal.valueOf(12.00), null));
+        inventoryService.create(miamiId, miamiManager.getId(), new CreateInventoryItemRequest(
+                "Beach Towels", "LINENS", 20, "count", 8, 12, null, BigDecimal.valueOf(9.50), null));
+
+        HouseholdAccessGrant grant = new HouseholdAccessGrant();
+        grant.setOwner(ownerAcrossProperties);
+        grant.setHousehold(miami);
+        accessGrantRepository.save(grant);
+
+        log.info("Seeded second property '{}' ({}) with 1 local manager, 1 vendor, 2 inventory items; portfolio access granted to {}",
+                miami.getName(), miamiId, ownerAcrossProperties.getEmail());
     }
 
     private void seedConsumptionHistory(Household household, UUID inventoryItemId, int previousQuantity, int newQuantity, int daysAgo) {

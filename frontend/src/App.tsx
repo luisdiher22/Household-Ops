@@ -8,6 +8,7 @@ import { InventoryPage } from './pages/InventoryPage'
 import { ShoppingListPage } from './pages/ShoppingListPage'
 import { ApprovalsPage } from './pages/ApprovalsPage'
 import { AssistantPage } from './pages/AssistantPage'
+import { PortfolioPage } from './pages/PortfolioPage'
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/shopping-list" element={<ShoppingListPage />} />
           <Route path="/approvals" element={<ApprovalsPage />} />
           <Route path="/assistant" element={<AssistantPage />} />
+          <Route path="/portfolio" element={<PortfolioPage />} />
         </Route>
       </Route>
     </Routes>

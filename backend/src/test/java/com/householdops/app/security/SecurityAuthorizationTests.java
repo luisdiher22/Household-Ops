@@ -8,12 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.householdops.app.staff.StaffMemberRepository;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -98,6 +100,75 @@ class SecurityAuthorizationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(newStaffJson("staff-added-" + UUID.randomUUID() + "@householdops.dev")))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void staffCannotCreateVendor() throws Exception {
+        String token = login("staff@householdops.dev");
+
+        mockMvc.perform(post("/api/households/{id}/vendors", householdId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Blocked Vendor Co.\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void ownerCanCreateVendor() throws Exception {
+        String token = login("owner@householdops.dev");
+
+        mockMvc.perform(post("/api/households/{id}/vendors", householdId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Test Vendor " + UUID.randomUUID() + "\"}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void staffCannotImportInventoryCsv() throws Exception {
+        String token = login("staff@householdops.dev");
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "inventory.csv", "text/csv",
+                "name,category,unit,currentQuantity,reorderThreshold,reorderQuantity\n".getBytes());
+
+        mockMvc.perform(multipart("/api/households/{id}/inventory/import", householdId)
+                        .file(file)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void ownerCanImportInventoryCsv() throws Exception {
+        String token = login("owner@householdops.dev");
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "inventory.csv", "text/csv",
+                "name,category,unit,currentQuantity,reorderThreshold,reorderQuantity\n".getBytes());
+
+        mockMvc.perform(multipart("/api/households/{id}/inventory/import", householdId)
+                        .file(file)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void staffCannotViewPortfolio() throws Exception {
+        String token = login("staff@householdops.dev");
+
+        mockMvc.perform(get("/api/portfolio")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void ownerCanViewPortfolioAcrossGrantedHouseholds() throws Exception {
+        String token = login("owner@householdops.dev");
+
+        String body = mockMvc.perform(get("/api/portfolio")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        org.assertj.core.api.Assertions.assertThat(body).contains("Aspen House", "Miami Beach Villa");
     }
 
     private String newStaffJson(String email) {

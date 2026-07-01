@@ -9,6 +9,7 @@ import {
   useUpdateInventoryItem,
   useVendors,
 } from '../hooks/useInventory'
+import { useCreateShoppingListItem } from '../hooks/useShoppingList'
 import type { InventoryItem } from '../types'
 
 // Fixed to en-US regardless of the browser's locale -- otherwise
@@ -152,6 +153,27 @@ function HistoryPanel({ itemId }: { itemId: string }) {
   )
 }
 
+function ReorderButton({ item }: { item: InventoryItem }) {
+  const createShoppingListItem = useCreateShoppingListItem()
+
+  return (
+    <button
+      onClick={() =>
+        createShoppingListItem.mutate({
+          description: item.vendorName ? `Restock: ${item.name} (from ${item.vendorName})` : `Restock: ${item.name}`,
+          quantity: item.reorderQuantity,
+          estimatedCost: item.unitCost != null ? item.unitCost * item.reorderQuantity : undefined,
+        })
+      }
+      disabled={createShoppingListItem.isPending}
+      title={item.vendorName ? `Add to shopping list, pre-filled from ${item.vendorName}` : 'Add to shopping list'}
+      className="rounded border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100 disabled:opacity-50"
+    >
+      {createShoppingListItem.isSuccess ? 'Added ✓' : 'Reorder'}
+    </button>
+  )
+}
+
 function InventoryRow({ item }: { item: InventoryItem }) {
   const updateItem = useUpdateInventoryItem()
   const [quantity, setQuantity] = useState(String(item.currentQuantity))
@@ -180,35 +202,38 @@ function InventoryRow({ item }: { item: InventoryItem }) {
             {showHistory ? 'Hide history' : 'Show history'}
           </button>
         </div>
-        <form
-          className="flex items-center gap-2"
-          onSubmit={(e) => {
-            e.preventDefault()
-            const parsed = Number(quantity)
-            if (Number.isNaN(parsed) || parsed < 0) return
-            updateItem.mutate({ id: item.id, currentQuantity: parsed, reason: isCorrection ? 'MANUAL_CORRECTION' : undefined })
-          }}
-        >
-          <label className="flex items-center gap-1 text-xs text-slate-500">
-            <input type="checkbox" checked={isCorrection} onChange={(e) => setIsCorrection(e.target.checked)} title="Recount correction, not real usage" />
-            recount
-          </label>
-          <input
-            type="number"
-            min="0"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            className="w-20 rounded border border-slate-300 px-2 py-1 text-sm"
-          />
-          <span className="text-xs text-slate-500">{item.unit}</span>
-          <button
-            type="submit"
-            disabled={updateItem.isPending || Number(quantity) === item.currentQuantity}
-            className="rounded border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+        <div className="flex items-center gap-2">
+          {item.lowStock && <ReorderButton item={item} />}
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              const parsed = Number(quantity)
+              if (Number.isNaN(parsed) || parsed < 0) return
+              updateItem.mutate({ id: item.id, currentQuantity: parsed, reason: isCorrection ? 'MANUAL_CORRECTION' : undefined })
+            }}
           >
-            Update
-          </button>
-        </form>
+            <label className="flex items-center gap-1 text-xs text-slate-500">
+              <input type="checkbox" checked={isCorrection} onChange={(e) => setIsCorrection(e.target.checked)} title="Recount correction, not real usage" />
+              recount
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              className="w-20 rounded border border-slate-300 px-2 py-1 text-sm"
+            />
+            <span className="text-xs text-slate-500">{item.unit}</span>
+            <button
+              type="submit"
+              disabled={updateItem.isPending || Number(quantity) === item.currentQuantity}
+              className="rounded border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            >
+              Update
+            </button>
+          </form>
+        </div>
       </div>
       {showHistory && <HistoryPanel itemId={item.id} />}
     </li>

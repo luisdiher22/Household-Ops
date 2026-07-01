@@ -15,7 +15,10 @@ import com.householdops.app.approval.ApprovalService;
 import com.householdops.app.approval.ApprovalStatus;
 import com.householdops.app.approval.ApprovalSubjectType;
 import com.householdops.app.assistant.AssistantDtos.ToolCallRecord;
+import com.householdops.app.inventory.InventoryDtos.InventoryItemResponse;
 import com.householdops.app.inventory.InventoryDtos.InventoryStatusResponse;
+import com.householdops.app.inventory.InventoryDtos.ValuationResponse;
+import com.householdops.app.inventory.InventoryService;
 import com.householdops.app.inventory.InventoryStatusService;
 import com.householdops.app.shoppinglist.ShoppingListDtos.ShoppingListItemResponse;
 import com.householdops.app.shoppinglist.ShoppingListItemStatus;
@@ -27,7 +30,7 @@ import com.householdops.app.task.TaskService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Four read-only tools grounding the assistant in the caller's own live data
+ * Six read-only tools grounding the assistant in the caller's own live data
  * -- function-calling over fixed structured queries, not RAG, since these
  * questions ("what's low on stock", "what's due soon") need reliable
  * relational lookups, not semantic document search. None of these tools
@@ -46,6 +49,7 @@ import lombok.RequiredArgsConstructor;
 public class AssistantTools {
 
     private final InventoryStatusService inventoryStatusService;
+    private final InventoryService inventoryService;
     private final TaskService taskService;
     private final ApprovalService approvalService;
     private final ShoppingListService shoppingListService;
@@ -55,6 +59,20 @@ public class AssistantTools {
         UUID householdId = householdId(toolContext);
         record(toolContext, "getInventoryStatus", "household=" + householdId);
         return inventoryStatusService.computeStatus(householdId);
+    }
+
+    @Tool(description = "Get every inventory item for the caller's household, including ones that are well-stocked -- use this for questions about a specific item's vendor, cost, or quantity (e.g. 'who supplies the olive oil') rather than getInventoryStatus, which only returns items needing attention")
+    public List<InventoryItemResponse> getAllInventoryItems(ToolContext toolContext) {
+        UUID householdId = householdId(toolContext);
+        record(toolContext, "getAllInventoryItems", "household=" + householdId);
+        return inventoryService.findByHousehold(householdId);
+    }
+
+    @Tool(description = "Get the total dollar value of the caller's household's inventory, broken down by category (e.g. 'what's my wine cellar worth', 'how much is tied up in cleaning supplies'). Only items with a recorded unit cost are included")
+    public ValuationResponse getInventoryValuation(ToolContext toolContext) {
+        UUID householdId = householdId(toolContext);
+        record(toolContext, "getInventoryValuation", "household=" + householdId);
+        return inventoryService.valuation(householdId);
     }
 
     @Tool(description = "Get open/in-progress tasks for the caller's household due on or before a given date")

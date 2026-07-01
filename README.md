@@ -43,7 +43,7 @@ flowchart TB
     Cache <--> Redis
     Service --> XML
     Controller --> Assistant
-    Assistant -->|4 read-only tools,<br/>household injected server-side| Service
+    Assistant -->|6 read-only tools,<br/>household injected server-side| Service
     Assistant <--> Claude
 ```
 
@@ -51,8 +51,9 @@ flowchart TB
 
 - **One bean is deliberately wired via classic Spring XML**, not `@Component`: `ReorderRulesEngine`'s implementation (`legacy/reorder-rules-context.xml` + `@ImportResource`) — modeling how a stable, rarely-touched business-rules component might persist in a long-lived enterprise codebase rather than being migrated to annotations for its own sake. It still participates fully in the Boot context (autowirable, runs on a `@Scheduled` job) once loaded.
 - **Redis backs a real cache-aside**, not a decorative one: the inventory low-stock aggregation is the most-read, moderately expensive computed view in the system (hit by the dashboard and by the assistant's inventory tool on nearly every query), invalidated explicitly on writes via `@CacheEvict`. Getting this right in practice surfaced a genuine bug — see below.
-- **The assistant uses tool-calling over four fixed, read-only queries, not RAG.** The household a query is scoped to always comes from the authenticated caller's JWT, server-side — the model never supplies or chooses it, so there's no path for a prompt to leak another household's data.
+- **The assistant uses tool-calling over six fixed, read-only queries, not RAG.** The household a query is scoped to always comes from the authenticated caller's JWT, server-side — the model never supplies or chooses it, so there's no path for a prompt to leak another household's data.
 - **JWT auth with 4 roles** (Owner/Principal, House Manager, Staff, Vendor) mapped to real family-office personas, with household-scoping enforced as an explicit guard clause rather than left implicit, and approval decisions additionally require being the *specific* assigned principal — not just any Owner.
+- **Multi-property support is additive, not a retrofit.** An Owner overseeing more than one household (a real family-office shape) is modeled as a separate `HouseholdAccessGrant` table plus its own read-only `/portfolio` endpoint, rather than changing what "household-scoped" means everywhere else. The JWT filter re-derives a caller's household from their own staff record on every request, and that single-household assumption is load-bearing across every existing controller — reworking it this late to support a household *list* would have meant touching every one of those call sites for one feature. The grant table gets the product value (a cross-property summary) without putting the existing, tested authorization model at risk.
 
 
 ## Tech stack

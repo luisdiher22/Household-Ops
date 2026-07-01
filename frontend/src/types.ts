@@ -161,3 +161,17 @@ export interface AssistantQueryResponse {
   answer: string
   toolCalls: AssistantToolCall[]
 }
+
+export interface PropertySummary {
+  householdId: string
+  name: string
+  address: string
+  primary: boolean
+  inventoryValue: number
+  lowStockCount: number
+  pendingApprovalCount: number
+}
+
+export interface PortfolioResponse {
+  properties: PropertySummary[]
+}

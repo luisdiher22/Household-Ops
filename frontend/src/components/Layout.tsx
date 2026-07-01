@@ -14,6 +14,7 @@ const navItems = [
   { to: '/shopping-list', label: 'Shopping List' },
   { to: '/approvals', label: 'Approvals', ownerOnly: true },
   { to: '/assistant', label: 'Assistant' },
+  { to: '/portfolio', label: 'Portfolio', ownerOnly: true },
 ]
 
 export function Layout() {
