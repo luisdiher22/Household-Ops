@@ -2,6 +2,8 @@
 
 A household operations assistant  — fills the gap between arrival-readiness checklists and the ongoing, day-to-day churn of running a household: what's low on stock, who's doing what, and what needs the owner's sign-off before it happens.
 
+I made a little live demo on video check it out! https://youtu.be/h1L99WgEAqc
+
 ## Why this project
 
 This was built as a portfolio project while taking inspiration from a company that builds family-office software . Their public product materials cover two things well: checklists/maintenance tracking for getting a property guest-ready, and a family of conversational assistants that answer natural-language questions over structured data ("what capital calls are due this week?").
