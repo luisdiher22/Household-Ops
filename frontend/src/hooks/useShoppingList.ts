@@ -35,6 +35,23 @@ export function useUpdateShoppingListStatus() {
   })
 }
 
+export function useCreateShoppingListItem() {
+  const queryClient = useQueryClient()
+  const { auth } = useAuth()
+  const householdId = auth!.householdId
+
+  return useMutation({
+    mutationFn: async (input: { description: string; quantity: number; estimatedCost?: number }) => {
+      const { data } = await apiClient.post<ShoppingListItem>(`/households/${householdId}/shopping-list`, input)
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shoppingList', householdId] })
+      queryClient.invalidateQueries({ queryKey: ['approvals', householdId] })
+    },
+  })
+}
+
 export function useGenerateReorderItems() {
   const queryClient = useQueryClient()
   const { auth } = useAuth()

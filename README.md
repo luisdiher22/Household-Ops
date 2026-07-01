@@ -119,3 +119,11 @@ The login page has one-click buttons for each.
 - Explicitly not covered: end-to-end browser tests (verified manually via Playwright during development instead — see the bug above), load testing, and mutation testing. Disproportionate for a project this size.
 
 Run with `cd backend && ./mvnw test` (requires Postgres/Redis running, e.g. via `docker compose up postgres redis`).
+
+## What I'd do with more time
+
+- **RS256 over HS256** for the JWT signature — the production answer for key rotation and multi-service trust; HS256 with a shared secret was the simpler choice to ship.
+- **A real polymorphic `ApprovalRequest` subject** instead of the soft `subjectType`/`subjectId` reference — simpler to build against a small, fixed set of subject types, at the cost of no DB-level FK integrity on the subject.
+- **httpOnly cookie auth** instead of JWTs in `localStorage` on the frontend — avoids XSS token exposure; skipped for the simplicity of a plain REST API with no session/CSRF machinery.
+- **Write-capable assistant tools**, gated behind an explicit confirmation step — today the assistant is deliberately read-only as a safety boundary.
+- **Testcontainers** instead of pointing tests at the same long-lived dev Postgres instance — the more correct approach for test isolation, but the extra setup wasn't worth it for this timeline.

@@ -1,4 +1,61 @@
-import { useGenerateReorderItems, useShoppingList, useUpdateShoppingListStatus } from '../hooks/useShoppingList'
+import { useState } from 'react'
+import { useCreateShoppingListItem, useGenerateReorderItems, useShoppingList, useUpdateShoppingListStatus } from '../hooks/useShoppingList'
+
+function NewItemForm() {
+  const createItem = useCreateShoppingListItem()
+  const [description, setDescription] = useState('')
+  const [quantity, setQuantity] = useState('1')
+  const [estimatedCost, setEstimatedCost] = useState('')
+
+  return (
+    <form
+      className="flex flex-wrap items-end gap-2 rounded-lg border border-slate-200 bg-white p-4"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (!description.trim()) return
+        createItem.mutate(
+          {
+            description,
+            quantity: Number(quantity) || 1,
+            estimatedCost: estimatedCost ? Number(estimatedCost) : undefined,
+          },
+          { onSuccess: () => { setDescription(''); setQuantity('1'); setEstimatedCost('') } },
+        )
+      }}
+    >
+      <div className="flex-1 min-w-[180px]">
+        <label className="block text-xs text-slate-500">Item</label>
+        <input value={description} onChange={(e) => setDescription(e.target.value)} className="w-full rounded border border-slate-300 px-2 py-1 text-sm" />
+      </div>
+      <div>
+        <label className="block text-xs text-slate-500">Quantity</label>
+        <input
+          type="number"
+          min="1"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+          className="w-20 rounded border border-slate-300 px-2 py-1 text-sm"
+        />
+      </div>
+      <div>
+        <label className="block text-xs text-slate-500">Estimated cost</label>
+        <input
+          type="number"
+          value={estimatedCost}
+          onChange={(e) => setEstimatedCost(e.target.value)}
+          className="w-28 rounded border border-slate-300 px-2 py-1 text-sm"
+        />
+      </div>
+      <button
+        type="submit"
+        disabled={createItem.isPending}
+        className="rounded bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+      >
+        Add item
+      </button>
+    </form>
+  )
+}
 
 export function ShoppingListPage() {
   const shoppingList = useShoppingList()
@@ -12,15 +69,26 @@ export function ShoppingListPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-slate-900">Shopping List</h1>
-        <button
-          onClick={() => generate.mutate()}
-          disabled={generate.isPending}
-          className="rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-          title="Runs the reorder-rules engine now, instead of waiting for its schedule"
-        >
-          {generate.isPending ? 'Checking inventory...' : 'Check inventory for restocks'}
-        </button>
+        <div className="flex items-center gap-3">
+          {generate.isSuccess && (
+            <span className="text-sm text-slate-500">
+              {generate.data.itemsQueued > 0
+                ? `Queued ${generate.data.itemsQueued} new item${generate.data.itemsQueued === 1 ? '' : 's'}.`
+                : 'Nothing new to restock right now.'}
+            </span>
+          )}
+          <button
+            onClick={() => generate.mutate()}
+            disabled={generate.isPending}
+            className="rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            title="Runs the reorder-rules engine now, instead of waiting for its schedule"
+          >
+            {generate.isPending ? 'Checking inventory...' : 'Check inventory for restocks'}
+          </button>
+        </div>
       </div>
+
+      <NewItemForm />
 
       {shoppingList.isLoading && <p className="text-sm text-slate-500">Loading...</p>}
 
