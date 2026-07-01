@@ -7,7 +7,7 @@ Notes for narrating the Mermaid diagram in the README. Walk it in request order:
 **React SPA (Vite, TanStack Query)**
 The frontend. A single-page React app — login, dashboard, tasks, shopping list, approvals, and the assistant chat all live here. TanStack Query handles fetching and caching data from the API so the UI doesn't have to hand-roll loading/error state everywhere. It talks to the backend over plain REST, attaching a JWT to every request.
 
-*Talking point: "This is the only part of the stack that's not Java — everything behind it is Spring."*
+*Talking point: "This is the only part of the stack that's not Java — everything behind it is Spring."*laLasslCoo
 
 ## Backend (Spring Boot)
 
