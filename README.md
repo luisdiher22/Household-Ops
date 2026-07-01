@@ -1,6 +1,6 @@
 # Household Ops
 
-A household operations assistant for the UHNW family-office stack — fills the gap between arrival-readiness checklists and the ongoing, day-to-day churn of running a household: what's low on stock, who's doing what, and what needs the owner's sign-off before it happens.
+A household operations assistant  — fills the gap between arrival-readiness checklists and the ongoing, day-to-day churn of running a household: what's low on stock, who's doing what, and what needs the owner's sign-off before it happens.
 
 ## Why this project
 
