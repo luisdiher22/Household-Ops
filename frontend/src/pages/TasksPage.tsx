@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useCreateTask, useTasks, useUpdateTaskStatus } from '../hooks/useTasks'
+import { useAssignTask, useCreateTask, useTasks, useUpdateTaskStatus } from '../hooks/useTasks'
 import { useStaff } from '../hooks/useStaff'
 import type { HouseholdTask, TaskStatus } from '../types'
 
@@ -7,6 +7,7 @@ const STATUS_OPTIONS: TaskStatus[] = ['OPEN', 'IN_PROGRESS', 'BLOCKED', 'DONE', 
 
 function TaskRow({ task }: { task: HouseholdTask }) {
   const updateStatus = useUpdateTaskStatus()
+  const assignTask = useAssignTask()
   const staff = useStaff()
   const assignee = staff.data?.find((s) => s.id === task.assignedToId)
 
@@ -15,31 +16,49 @@ function TaskRow({ task }: { task: HouseholdTask }) {
       <div className="min-w-0">
         <p className="truncate text-sm font-medium text-slate-900">{task.title}</p>
         <p className="text-xs text-slate-500">
-          {assignee ? `Assigned to ${assignee.fullName}` : 'Unassigned'}
-          {task.dueDate && ` · Due ${task.dueDate}`}
+          {task.dueDate && `Due ${task.dueDate}`}
           {task.estimatedCost != null && ` · $${task.estimatedCost}`}
           {task.approvalPending && <span className="ml-1 font-medium text-amber-600">· Approval pending</span>}
         </p>
       </div>
-      <select
-        value={task.status}
-        disabled={updateStatus.isPending}
-        onChange={(e) => updateStatus.mutate({ id: task.id, status: e.target.value as TaskStatus })}
-        className="rounded border border-slate-300 px-2 py-1 text-sm"
-      >
-        {STATUS_OPTIONS.map((status) => (
-          <option key={status} value={status}>
-            {status}
+      <div className="flex items-center gap-2">
+        <select
+          value={task.assignedToId ?? ''}
+          disabled={assignTask.isPending || staff.isLoading}
+          onChange={(e) => e.target.value && assignTask.mutate({ id: task.id, assignedToId: e.target.value })}
+          className="rounded border border-slate-300 px-2 py-1 text-sm"
+        >
+          <option value="" disabled>
+            {assignee ? assignee.fullName : 'Unassigned'}
           </option>
-        ))}
-      </select>
+          {staff.data?.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.fullName}
+            </option>
+          ))}
+        </select>
+        <select
+          value={task.status}
+          disabled={updateStatus.isPending}
+          onChange={(e) => updateStatus.mutate({ id: task.id, status: e.target.value as TaskStatus })}
+          className="rounded border border-slate-300 px-2 py-1 text-sm"
+        >
+          {STATUS_OPTIONS.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+      </div>
     </li>
   )
 }
 
 function NewTaskForm() {
   const createTask = useCreateTask()
+  const staff = useStaff()
   const [title, setTitle] = useState('')
+  const [assignedToId, setAssignedToId] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [estimatedCost, setEstimatedCost] = useState('')
 
@@ -52,16 +71,32 @@ function NewTaskForm() {
         createTask.mutate(
           {
             title,
+            assignedToId: assignedToId || undefined,
             dueDate: dueDate || undefined,
             estimatedCost: estimatedCost ? Number(estimatedCost) : undefined,
           },
-          { onSuccess: () => { setTitle(''); setDueDate(''); setEstimatedCost('') } },
+          { onSuccess: () => { setTitle(''); setAssignedToId(''); setDueDate(''); setEstimatedCost('') } },
         )
       }}
     >
       <div className="flex-1 min-w-[180px]">
         <label className="block text-xs text-slate-500">Title</label>
         <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full rounded border border-slate-300 px-2 py-1 text-sm" />
+      </div>
+      <div>
+        <label className="block text-xs text-slate-500">Assign to</label>
+        <select
+          value={assignedToId}
+          onChange={(e) => setAssignedToId(e.target.value)}
+          className="rounded border border-slate-300 px-2 py-1 text-sm"
+        >
+          <option value="">Unassigned</option>
+          {staff.data?.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.fullName}
+            </option>
+          ))}
+        </select>
       </div>
       <div>
         <label className="block text-xs text-slate-500">Due date</label>

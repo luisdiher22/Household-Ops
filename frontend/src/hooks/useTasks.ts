@@ -35,6 +35,24 @@ export function useUpdateTaskStatus() {
   })
 }
 
+// Backend's PATCH /tasks/{id} only ever *sets* assignedToId when it's
+// present in the request (never clears it), so this only supports
+// reassigning to another staff member, not unassigning.
+export function useAssignTask() {
+  const queryClient = useQueryClient()
+  const { auth } = useAuth()
+
+  return useMutation({
+    mutationFn: async ({ id, assignedToId }: { id: string; assignedToId: string }) => {
+      const { data } = await apiClient.patch<HouseholdTask>(`/tasks/${id}`, { assignedToId })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', auth!.householdId] })
+    },
+  })
+}
+
 export function useCreateTask() {
   const queryClient = useQueryClient()
   const { auth } = useAuth()

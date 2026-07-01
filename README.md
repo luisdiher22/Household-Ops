@@ -60,15 +60,16 @@ While verifying the frontend in an actual browser (not just via `curl`), the inv
 
 ## Tech stack
 
-| Layer | Choice |
-|---|---|
-| Backend | Java 17, Spring Boot 3.5, Spring Data JPA, Spring Security, Flyway |
-| Database | PostgreSQL 16 |
-| Cache | Redis 7 |
-| Auth | JWT (jjwt), BCrypt |
-| AI | Spring AI 1.0 + Anthropic Claude (tool-calling) |
+
+| Layer    | Choice                                                                    |
+| ---------- | --------------------------------------------------------------------------- |
+| Backend  | Java 17, Spring Boot 3.5, Spring Data JPA, Spring Security, Flyway        |
+| Database | PostgreSQL 16                                                             |
+| Cache    | Redis 7                                                                   |
+| Auth     | JWT (jjwt), BCrypt                                                        |
+| AI       | Spring AI 1.0 + Anthropic Claude (tool-calling)                           |
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, TanStack Query, React Router |
-| API docs | springdoc-openapi / Swagger UI |
+| API docs | springdoc-openapi / Swagger UI                                            |
 
 ## Running it
 
@@ -94,12 +95,13 @@ cd frontend && npm install && npm run dev   # UI on :5173, proxies /api to :8090
 
 Seeded automatically; password is `password123` for all:
 
-| Role | Email |
-|---|---|
-| Owner | owner@householdops.dev |
+
+| Role          | Email                    |
+| --------------- | -------------------------- |
+| Owner         | owner@householdops.dev   |
 | House Manager | manager@householdops.dev |
-| Staff | staff@householdops.dev |
-| Vendor | vendor@householdops.dev |
+| Staff         | staff@householdops.dev   |
+| Vendor        | vendor@householdops.dev  |
 
 The login page has one-click buttons for each.
 
@@ -117,11 +119,3 @@ The login page has one-click buttons for each.
 - Explicitly not covered: end-to-end browser tests (verified manually via Playwright during development instead — see the bug above), load testing, and mutation testing. Disproportionate for a project this size.
 
 Run with `cd backend && ./mvnw test` (requires Postgres/Redis running, e.g. via `docker compose up postgres redis`).
-
-## What I'd do with more time
-
-- **RS256 over HS256** for the JWT signature — the production answer for key rotation and multi-service trust; HS256 with a shared secret was the simpler choice to ship.
-- **A real polymorphic `ApprovalRequest` subject** instead of the soft `subjectType`/`subjectId` reference — simpler to build against a small, fixed set of subject types, at the cost of no DB-level FK integrity on the subject.
-- **httpOnly cookie auth** instead of JWTs in `localStorage` on the frontend — avoids XSS token exposure; skipped for the simplicity of a plain REST API with no session/CSRF machinery.
-- **Write-capable assistant tools**, gated behind an explicit confirmation step — today the assistant is deliberately read-only as a safety boundary.
-- **Testcontainers** instead of pointing tests at the same long-lived dev Postgres instance — the more correct approach for test isolation, but the extra setup wasn't worth it for this timeline.
