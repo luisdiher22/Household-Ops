@@ -64,6 +64,9 @@ public class TaskController {
             @Valid @RequestBody CreateTaskRequest request,
             @AuthenticationPrincipal AuthenticatedPrincipal principal) {
         SecurityAssertions.requireHousehold(principal, householdId);
+        // Assigning work to someone else is a House Manager/Owner decision, not a
+        // Staff/Vendor self-service action -- checked here (not just hidden in the
+        // UI) since a direct API call would otherwise bypass it.
         if (request.assignedToId() != null) {
             SecurityAssertions.requireRole(principal, StaffRole.OWNER, StaffRole.HOUSE_MANAGER);
         }
@@ -75,6 +78,7 @@ public class TaskController {
             @PathVariable UUID id,
             @RequestBody UpdateTaskRequest request,
             @AuthenticationPrincipal AuthenticatedPrincipal principal) {
+        // Same rule as create(): reassigning is Owner/Manager-only.
         if (request.assignedToId() != null) {
             SecurityAssertions.requireRole(principal, StaffRole.OWNER, StaffRole.HOUSE_MANAGER);
         }

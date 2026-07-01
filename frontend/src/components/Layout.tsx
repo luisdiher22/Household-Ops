@@ -1,6 +1,12 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 
+// ownerOnly here just hides the nav link -- it's not the security boundary.
+// Deciding an approval is enforced server-side (ApprovalController requires
+// the OWNER role, and specifically the request's own assigned principal);
+// viewing the pending list isn't role-restricted on the backend at all,
+// since a Staff member knowing "there's a $5,000 request awaiting approval"
+// isn't sensitive the way approving/rejecting it would be.
 const navItems = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/tasks', label: 'Tasks' },

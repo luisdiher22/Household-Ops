@@ -36,6 +36,9 @@ public class ApprovalController {
         return approvalService.findByHousehold(householdId, status, pageable).map(ApprovalResponse::from);
     }
 
+    // Role check here narrows it to Owners; ApprovalService.decide() then checks
+    // the caller is *this request's specific* principal, since a different
+    // household's Owner shouldn't be able to decide someone else's approval.
     @PreAuthorize("hasRole('OWNER')")
     @PostMapping("/api/approvals/{id}/decide")
     public ApprovalResponse decide(

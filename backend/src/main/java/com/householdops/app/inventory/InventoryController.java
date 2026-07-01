@@ -21,6 +21,12 @@ import com.householdops.app.security.SecurityAssertions;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Unlike tasks (assignment is Owner/Manager-only, see TaskController), any
+ * household member can create/update inventory items -- Staff restocking the
+ * pantry and updating counts is the normal day-to-day flow this whole
+ * project exists for, not something to gate behind a role check.
+ */
 @RestController
 @RequiredArgsConstructor
 public class InventoryController {

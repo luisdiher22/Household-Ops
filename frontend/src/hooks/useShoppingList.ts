@@ -30,6 +30,8 @@ export function useUpdateShoppingListStatus() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shoppingList', auth!.householdId] })
+      // Marking PURCHASED can be rejected by the backend if an approval is still
+      // pending on this item, so the approvals list may also be stale here.
       queryClient.invalidateQueries({ queryKey: ['approvals', auth!.householdId] })
     },
   })
@@ -47,6 +49,8 @@ export function useCreateShoppingListItem() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shoppingList', householdId] })
+      // An item over the household's spend threshold auto-creates a pending
+      // approval server-side, so refresh that list too.
       queryClient.invalidateQueries({ queryKey: ['approvals', householdId] })
     },
   })

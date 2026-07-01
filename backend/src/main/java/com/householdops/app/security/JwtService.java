@@ -46,6 +46,7 @@ public class JwtService {
                 .compact();
     }
 
+    /** Deliberately carries only the subject, not role/householdId -- AuthController.refresh() re-reads those fresh from the DB, so a role change or deactivation takes effect on the next refresh instead of surviving until this long-lived token expires. */
     public String generateRefreshToken(AuthenticatedPrincipal principal) {
         Instant now = Instant.now();
         return Jwts.builder()

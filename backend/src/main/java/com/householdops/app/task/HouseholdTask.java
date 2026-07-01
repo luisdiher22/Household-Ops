@@ -54,7 +54,13 @@ public class HouseholdTask extends Auditable {
     @Column(precision = 12, scale = 2)
     private BigDecimal estimatedCost;
 
-    /** Set when this task was auto-generated in response to a low-stock inventory item. */
+    /**
+     * Intended to link a task back to the inventory item that prompted it, but
+     * no current code path ever sets this -- ReorderJob's auto-generation
+     * creates a ShoppingListItem (whose own inventoryItem field is populated),
+     * not a HouseholdTask. Left in place as schema/DTO surface for a future
+     * "convert a restock into a task" flow rather than removed outright.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "linked_inventory_item_id")
     private InventoryItem linkedInventoryItem;

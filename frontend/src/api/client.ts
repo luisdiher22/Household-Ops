@@ -14,6 +14,10 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
+// Shared across all callers so that if several requests 401 at once (e.g. a
+// page loading multiple queries in parallel right as the token expires),
+// they all await the same in-flight refresh instead of each firing their own
+// /auth/refresh call and racing to save a token.
 let refreshPromise: Promise<AuthResponse> | null = null
 
 async function refreshAccessToken(): Promise<AuthResponse> {

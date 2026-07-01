@@ -30,6 +30,8 @@ export function useUpdateTaskStatus() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', auth!.householdId] })
+      // Marking DONE can be rejected server-side while an approval is still
+      // pending, so the approvals list may need refreshing too.
       queryClient.invalidateQueries({ queryKey: ['approvals', auth!.householdId] })
     },
   })
@@ -71,6 +73,8 @@ export function useCreateTask() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', householdId] })
+      // A task over the household's spend threshold auto-creates a pending
+      // approval server-side, so refresh that list too.
       queryClient.invalidateQueries({ queryKey: ['approvals', householdId] })
     },
   })
