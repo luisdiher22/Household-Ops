@@ -1,0 +1,14 @@
+package com.householdops.app.shoppinglist;
+
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ShoppingListRepository extends JpaRepository<ShoppingListItem, UUID> {
+
+    Page<ShoppingListItem> findByHouseholdId(UUID householdId, Pageable pageable);
+
+    Page<ShoppingListItem> findByHouseholdIdAndStatus(UUID householdId, ShoppingListItemStatus status, Pageable pageable);
+}

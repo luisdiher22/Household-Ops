@@ -1,0 +1,88 @@
+package com.householdops.app.shoppinglist;
+
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.householdops.app.approval.ApprovalService;
+import com.householdops.app.approval.ApprovalSubjectType;
+import com.householdops.app.common.exception.BusinessRuleViolationException;
+import com.householdops.app.common.exception.ResourceNotFoundException;
+import com.householdops.app.household.Household;
+import com.householdops.app.household.HouseholdRepository;
+import com.householdops.app.inventory.InventoryItem;
+import com.householdops.app.inventory.InventoryRepository;
+import com.householdops.app.shoppinglist.ShoppingListDtos.CreateShoppingListItemRequest;
+import com.householdops.app.staff.StaffMember;
+import com.householdops.app.staff.StaffMemberRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class ShoppingListService {
+
+    private final ShoppingListRepository shoppingListRepository;
+    private final HouseholdRepository householdRepository;
+    private final InventoryRepository inventoryRepository;
+    private final StaffMemberRepository staffMemberRepository;
+    private final ApprovalService approvalService;
+
+    @Transactional(readOnly = true)
+    public Page<ShoppingListItem> findByHousehold(UUID householdId, ShoppingListItemStatus status, Pageable pageable) {
+        return status != null
+                ? shoppingListRepository.findByHouseholdIdAndStatus(householdId, status, pageable)
+                : shoppingListRepository.findByHouseholdId(householdId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public ShoppingListItem getById(UUID id) {
+        return shoppingListRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Shopping list item not found: " + id));
+    }
+
+    @Transactional
+    public ShoppingListItem create(UUID householdId, CreateShoppingListItemRequest request) {
+        Household household = householdRepository.findById(householdId)
+                .orElseThrow(() -> new ResourceNotFoundException("Household not found: " + householdId));
+        StaffMember requestedBy = staffMemberRepository.findById(request.requestedById())
+                .orElseThrow(() -> new ResourceNotFoundException("Staff member not found: " + request.requestedById()));
+
+        ShoppingListItem item = new ShoppingListItem();
+        item.setHousehold(household);
+        item.setDescription(request.description());
+        item.setQuantity(request.quantity());
+        item.setEstimatedCost(request.estimatedCost());
+
+        if (request.inventoryItemId() != null) {
+            InventoryItem inventoryItem = inventoryRepository.findById(request.inventoryItemId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Inventory item not found: " + request.inventoryItemId()));
+            item.setInventoryItem(inventoryItem);
+        }
+
+        item = shoppingListRepository.save(item);
+
+        approvalService.requestIfOverThreshold(
+                household, requestedBy, ApprovalSubjectType.SHOPPING_ITEM, item.getId(), item.getEstimatedCost(),
+                "Shopping list item \"" + item.getDescription() + "\" estimated at " + item.getEstimatedCost());
+
+        return item;
+    }
+
+    @Transactional
+    public ShoppingListItem updateStatus(UUID id, ShoppingListItemStatus newStatus) {
+        ShoppingListItem item = getById(id);
+
+        if (newStatus == ShoppingListItemStatus.PURCHASED
+                && approvalService.hasPendingApproval(ApprovalSubjectType.SHOPPING_ITEM, item.getId())) {
+            throw new BusinessRuleViolationException(
+                    "Shopping list item " + id + " cannot be marked PURCHASED while an approval is still pending");
+        }
+
+        item.setStatus(newStatus);
+        return item;
+    }
+}
