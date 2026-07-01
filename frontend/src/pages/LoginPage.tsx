@@ -34,11 +34,11 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50">
-      <div className="w-full max-w-sm space-y-6 rounded-lg border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-ivory">
+      <div className="w-full max-w-sm space-y-6 rounded-lg border border-navy/15 bg-white p-8 shadow-sm">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Household Ops</h1>
-          <p className="text-sm text-slate-500">Sign in to manage your household</p>
+          <h1 className="text-xl font-semibold text-navy">Household Ops</h1>
+          <p className="text-sm text-navy/60">Sign in to manage your household</p>
         </div>
 
         <form
@@ -53,7 +53,7 @@ export function LoginPage() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded border border-navy/30 px-3 py-2 text-sm"
             required
           />
           <input
@@ -61,21 +61,21 @@ export function LoginPage() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded border border-navy/30 px-3 py-2 text-sm"
             required
           />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+            className="w-full rounded bg-navy px-3 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
           >
             Sign in
           </button>
         </form>
 
         <div>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">Demo accounts</p>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-navy/40">Demo accounts</p>
           <div className="grid gap-2">
             {DEMO_ACCOUNTS.map((account) => (
               <button
@@ -83,7 +83,7 @@ export function LoginPage() {
                 type="button"
                 disabled={submitting}
                 onClick={() => void doLogin(account.email, DEMO_PASSWORD)}
-                className="rounded border border-slate-200 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                className="rounded border border-navy/15 px-3 py-2 text-left text-sm text-navy/90 hover:bg-ivory disabled:opacity-50"
               >
                 {account.label}
               </button>

@@ -7,6 +7,10 @@ interface AuthContextValue {
   auth: AuthResponse | null
   login: (email: string, password: string) => Promise<void>
   logout: () => void
+  // Lets a mutation hook (e.g. switching to a different property) update the
+  // shared session in one place, same as login does -- every query hook that
+  // keys off auth.householdId picks up the change automatically.
+  setAuthResponse: (response: AuthResponse) => void
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -25,6 +29,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout: () => {
         clearAuth()
         setAuth(null)
+      },
+      setAuthResponse: (response: AuthResponse) => {
+        saveAuth(response)
+        setAuth(response)
       },
     }),
     [auth],

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class SpaFallbackController {
 
-    @GetMapping({"/", "/tasks", "/inventory", "/shopping-list", "/approvals", "/assistant", "/login"})
+    @GetMapping({"/", "/tasks", "/inventory", "/shopping-list", "/approvals", "/assistant", "/portfolio", "/staff", "/login"})
     public String index() {
         return "forward:/index.html";
     }

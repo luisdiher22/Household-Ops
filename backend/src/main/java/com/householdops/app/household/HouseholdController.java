@@ -30,7 +30,7 @@ public class HouseholdController {
 
     private final HouseholdService householdService;
 
-    /** Every staff member belongs to exactly one household, so "list" is just that one. */
+    /** "List" is just whichever single household the caller is currently scoped to (see AuthenticatedPrincipal's activeHouseholdId) -- for cross-household enumeration, see PortfolioController instead. */
     @GetMapping
     public List<HouseholdResponse> findAll(@AuthenticationPrincipal AuthenticatedPrincipal principal) {
         return List.of(HouseholdResponse.from(householdService.getById(principal.getHouseholdId())));

@@ -10,8 +10,10 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.householdops.app.household.HouseholdAccessGrantRepository;
 import com.householdops.app.staff.StaffMember;
 import com.householdops.app.staff.StaffMemberRepository;
+import com.householdops.app.staff.StaffRole;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -35,6 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final StaffMemberRepository staffMemberRepository;
+    private final HouseholdAccessGrantRepository accessGrantRepository;
 
     @Override
     protected void doFilterInternal(
@@ -63,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            AuthenticatedPrincipal principal = new AuthenticatedPrincipal(staffMember);
+            AuthenticatedPrincipal principal = new AuthenticatedPrincipal(staffMember, resolveActiveHousehold(claims, staffMember));
             var authToken = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -71,5 +74,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Invalid/expired/tampered token: leave the request unauthenticated
             // and let the security filter chain's authorization rules reject it.
         }
+    }
+
+    /**
+     * The token's householdId claim reflects whatever was active when it was
+     * minted (see AuthController.switchHousehold/refresh), which may be a
+     * granted household rather than the staff member's own. Re-checking the
+     * grant here -- rather than trusting the claim -- means a revoked grant
+     * takes effect on the very next request, not just the next token
+     * refresh, and a tampered claim silently falls back to the staff
+     * member's own household instead of being trusted.
+     */
+    private UUID resolveActiveHousehold(Claims claims, StaffMember staffMember) {
+        UUID claimedHouseholdId = jwtService.extractHouseholdId(claims);
+        UUID homeHouseholdId = staffMember.getHousehold().getId();
+
+        if (claimedHouseholdId == null || claimedHouseholdId.equals(homeHouseholdId)) {
+            return homeHouseholdId;
+        }
+        if (staffMember.getRole() == StaffRole.OWNER
+                && accessGrantRepository.existsByOwnerIdAndHouseholdId(staffMember.getId(), claimedHouseholdId)) {
+            return claimedHouseholdId;
+        }
+        return homeHouseholdId;
     }
 }

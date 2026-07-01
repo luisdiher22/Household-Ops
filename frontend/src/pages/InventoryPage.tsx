@@ -24,12 +24,12 @@ function ValuationSummary() {
   if (!valuation.data || valuation.data.byCategory.length === 0) return null
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-lg border border-navy/15 bg-white p-4 shadow-sm">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-sm font-semibold text-slate-900">Inventory value</h2>
-        <span className="text-lg font-semibold text-slate-900">${formatCurrency(valuation.data.totalValue)}</span>
+        <h2 className="text-sm font-semibold text-navy">Inventory value</h2>
+        <span className="text-lg font-semibold text-navy">${formatCurrency(valuation.data.totalValue)}</span>
       </div>
-      <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+      <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-navy/60">
         {valuation.data.byCategory.map((c) => (
           <li key={c.category}>
             {c.category}: ${formatCurrency(c.totalValue)} ({c.itemCount})
@@ -47,16 +47,16 @@ function VendorsSection() {
   const [contactEmail, setContactEmail] = useState('')
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-      <h2 className="mb-2 text-sm font-semibold text-slate-900">Vendors</h2>
-      <ul className="mb-3 space-y-1 text-sm text-slate-700">
+    <div className="rounded-lg border border-navy/15 bg-white p-4 shadow-sm">
+      <h2 className="mb-2 text-sm font-semibold text-navy">Vendors</h2>
+      <ul className="mb-3 space-y-1 text-sm text-navy/90">
         {vendors.data?.map((v) => (
           <li key={v.id}>
             {v.name}
-            {v.contactEmail && <span className="text-slate-400"> · {v.contactEmail}</span>}
+            {v.contactEmail && <span className="text-navy/40"> · {v.contactEmail}</span>}
           </li>
         ))}
-        {vendors.data?.length === 0 && <li className="text-slate-500">No vendors yet.</li>}
+        {vendors.data?.length === 0 && <li className="text-navy/60">No vendors yet.</li>}
       </ul>
       <form
         className="flex flex-wrap items-end gap-2"
@@ -70,17 +70,17 @@ function VendorsSection() {
         }}
       >
         <div>
-          <label className="block text-xs text-slate-500">Vendor name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} className="rounded border border-slate-300 px-2 py-1 text-sm" />
+          <label className="block text-xs text-navy/60">Vendor name</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} className="rounded border border-navy/30 px-2 py-1 text-sm" />
         </div>
         <div>
-          <label className="block text-xs text-slate-500">Contact email</label>
-          <input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className="rounded border border-slate-300 px-2 py-1 text-sm" />
+          <label className="block text-xs text-navy/60">Contact email</label>
+          <input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className="rounded border border-navy/30 px-2 py-1 text-sm" />
         </div>
         <button
           type="submit"
           disabled={createVendor.isPending}
-          className="rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          className="rounded border border-navy/30 px-3 py-1.5 text-sm text-navy/90 hover:bg-ivory disabled:opacity-50"
         >
           Add vendor
         </button>
@@ -105,10 +105,10 @@ function ImportControl() {
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-lg border border-navy/15 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-900">Bulk import</h2>
-        <button onClick={downloadTemplate} className="text-xs text-slate-500 underline hover:text-slate-700">
+        <h2 className="text-sm font-semibold text-navy">Bulk import</h2>
+        <button onClick={downloadTemplate} className="text-xs text-navy/60 underline hover:text-navy">
           Download CSV template
         </button>
       </div>
@@ -116,15 +116,23 @@ function ImportControl() {
         ref={fileInputRef}
         type="file"
         accept=".csv"
-        className="mt-2 text-sm"
+        className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0]
           if (file) importCsv.mutate(file)
           if (fileInputRef.current) fileInputRef.current.value = ''
         }}
       />
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={importCsv.isPending}
+        className="mt-2 rounded border border-navy/30 px-3 py-1.5 text-sm text-navy/90 hover:bg-ivory disabled:opacity-50"
+      >
+        {importCsv.isPending ? 'Importing...' : 'Choose CSV file'}
+      </button>
       {importCsv.isSuccess && (
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-navy/70">
           Imported {importCsv.data.imported} item{importCsv.data.imported === 1 ? '' : 's'}.
           {importCsv.data.errors.length > 0 && (
             <span className="ml-1 text-amber-600">{importCsv.data.errors.length} row(s) skipped: {importCsv.data.errors.join('; ')}</span>
@@ -138,7 +146,7 @@ function ImportControl() {
 function HistoryPanel({ itemId }: { itemId: string }) {
   const history = useInventoryHistory(itemId)
   return (
-    <div className="mt-2 rounded border border-slate-100 bg-slate-50 p-2 text-xs text-slate-600">
+    <div className="mt-2 rounded border border-navy/10 bg-ivory p-2 text-xs text-navy/70">
       {history.isLoading && <p>Loading history...</p>}
       {history.data?.length === 0 && <p>No adjustments logged yet.</p>}
       <ul className="space-y-1">
@@ -184,21 +192,21 @@ function InventoryRow({ item }: { item: InventoryItem }) {
     <li className="py-3">
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-slate-900">
+          <p className="text-sm font-medium text-navy">
             {item.name}
             {item.lowStock && <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-700">low stock</span>}
             {item.expiringSoon && <span className="ml-2 rounded bg-red-50 px-1.5 py-0.5 text-xs font-medium text-red-700">expiring soon</span>}
           </p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-navy/60">
             reorder at {item.reorderThreshold} {item.unit} (orders {item.reorderQuantity} more)
             {item.vendorName && ` · ${item.vendorName}`}
             {item.unitCost != null && ` · $${formatCurrency(item.unitCost)}/unit ($${formatCurrency(item.totalValue ?? 0)} total)`}
             {item.expirationDate && ` · expires ${item.expirationDate}`}
             {item.predictedDaysUntilEmpty != null && (
-              <span className="font-medium text-slate-600"> · ~{item.predictedDaysUntilEmpty}d until empty</span>
+              <span className="font-medium text-navy/70"> · ~{item.predictedDaysUntilEmpty}d until empty</span>
             )}
           </p>
-          <button onClick={() => setShowHistory((s) => !s)} className="mt-0.5 text-xs text-slate-400 underline hover:text-slate-600">
+          <button onClick={() => setShowHistory((s) => !s)} className="mt-0.5 text-xs text-navy/40 underline hover:text-navy/70">
             {showHistory ? 'Hide history' : 'Show history'}
           </button>
         </div>
@@ -213,7 +221,7 @@ function InventoryRow({ item }: { item: InventoryItem }) {
               updateItem.mutate({ id: item.id, currentQuantity: parsed, reason: isCorrection ? 'MANUAL_CORRECTION' : undefined })
             }}
           >
-            <label className="flex items-center gap-1 text-xs text-slate-500">
+            <label className="flex items-center gap-1 text-xs text-navy/60">
               <input type="checkbox" checked={isCorrection} onChange={(e) => setIsCorrection(e.target.checked)} title="Recount correction, not real usage" />
               recount
             </label>
@@ -222,13 +230,13 @@ function InventoryRow({ item }: { item: InventoryItem }) {
               min="0"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              className="w-20 rounded border border-slate-300 px-2 py-1 text-sm"
+              className="w-20 rounded border border-navy/30 px-2 py-1 text-sm"
             />
-            <span className="text-xs text-slate-500">{item.unit}</span>
+            <span className="text-xs text-navy/60">{item.unit}</span>
             <button
               type="submit"
               disabled={updateItem.isPending || Number(quantity) === item.currentQuantity}
-              className="rounded border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              className="rounded border border-navy/30 px-2 py-1 text-xs text-navy/90 hover:bg-ivory disabled:opacity-50"
             >
               Update
             </button>
@@ -255,7 +263,7 @@ function NewItemForm() {
 
   return (
     <form
-      className="flex flex-wrap items-end gap-2 rounded-lg border border-slate-200 bg-white p-4"
+      className="flex flex-wrap items-end gap-2 rounded-lg border border-navy/15 bg-white p-4"
       onSubmit={(e) => {
         e.preventDefault()
         if (!name.trim() || !category.trim() || !unit.trim()) return
@@ -282,32 +290,32 @@ function NewItemForm() {
       }}
     >
       <div className="flex-1 min-w-[140px]">
-        <label className="block text-xs text-slate-500">Name</label>
-        <input value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded border border-slate-300 px-2 py-1 text-sm" />
+        <label className="block text-xs text-navy/60">Name</label>
+        <input value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded border border-navy/30 px-2 py-1 text-sm" />
       </div>
       <div>
-        <label className="block text-xs text-slate-500">Category</label>
-        <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="PANTRY" className="w-28 rounded border border-slate-300 px-2 py-1 text-sm" />
+        <label className="block text-xs text-navy/60">Category</label>
+        <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="PANTRY" className="w-28 rounded border border-navy/30 px-2 py-1 text-sm" />
       </div>
       <div>
-        <label className="block text-xs text-slate-500">Unit</label>
-        <input value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="bottles" className="w-24 rounded border border-slate-300 px-2 py-1 text-sm" />
+        <label className="block text-xs text-navy/60">Unit</label>
+        <input value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="bottles" className="w-24 rounded border border-navy/30 px-2 py-1 text-sm" />
       </div>
       <div>
-        <label className="block text-xs text-slate-500">Quantity</label>
-        <input type="number" min="0" value={currentQuantity} onChange={(e) => setCurrentQuantity(e.target.value)} className="w-20 rounded border border-slate-300 px-2 py-1 text-sm" />
+        <label className="block text-xs text-navy/60">Quantity</label>
+        <input type="number" min="0" value={currentQuantity} onChange={(e) => setCurrentQuantity(e.target.value)} className="w-20 rounded border border-navy/30 px-2 py-1 text-sm" />
       </div>
       <div>
-        <label className="block text-xs text-slate-500">Reorder at</label>
-        <input type="number" min="0" value={reorderThreshold} onChange={(e) => setReorderThreshold(e.target.value)} className="w-20 rounded border border-slate-300 px-2 py-1 text-sm" />
+        <label className="block text-xs text-navy/60">Reorder at</label>
+        <input type="number" min="0" value={reorderThreshold} onChange={(e) => setReorderThreshold(e.target.value)} className="w-20 rounded border border-navy/30 px-2 py-1 text-sm" />
       </div>
       <div>
-        <label className="block text-xs text-slate-500">Reorder qty</label>
-        <input type="number" min="1" value={reorderQuantity} onChange={(e) => setReorderQuantity(e.target.value)} className="w-20 rounded border border-slate-300 px-2 py-1 text-sm" />
+        <label className="block text-xs text-navy/60">Reorder qty</label>
+        <input type="number" min="1" value={reorderQuantity} onChange={(e) => setReorderQuantity(e.target.value)} className="w-20 rounded border border-navy/30 px-2 py-1 text-sm" />
       </div>
       <div>
-        <label className="block text-xs text-slate-500">Vendor</label>
-        <select value={vendorId} onChange={(e) => setVendorId(e.target.value)} className="rounded border border-slate-300 px-2 py-1 text-sm">
+        <label className="block text-xs text-navy/60">Vendor</label>
+        <select value={vendorId} onChange={(e) => setVendorId(e.target.value)} className="rounded border border-navy/30 px-2 py-1 text-sm">
           <option value="">None</option>
           {vendors.data?.map((v) => (
             <option key={v.id} value={v.id}>{v.name}</option>
@@ -315,17 +323,17 @@ function NewItemForm() {
         </select>
       </div>
       <div>
-        <label className="block text-xs text-slate-500">Unit cost</label>
-        <input type="number" step="0.01" value={unitCost} onChange={(e) => setUnitCost(e.target.value)} className="w-24 rounded border border-slate-300 px-2 py-1 text-sm" />
+        <label className="block text-xs text-navy/60">Unit cost</label>
+        <input type="number" step="0.01" value={unitCost} onChange={(e) => setUnitCost(e.target.value)} className="w-24 rounded border border-navy/30 px-2 py-1 text-sm" />
       </div>
       <div>
-        <label className="block text-xs text-slate-500">Expires</label>
-        <input type="date" value={expirationDate} onChange={(e) => setExpirationDate(e.target.value)} className="rounded border border-slate-300 px-2 py-1 text-sm" />
+        <label className="block text-xs text-navy/60">Expires</label>
+        <input type="date" value={expirationDate} onChange={(e) => setExpirationDate(e.target.value)} className="rounded border border-navy/30 px-2 py-1 text-sm" />
       </div>
       <button
         type="submit"
         disabled={createItem.isPending}
-        className="rounded bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+        className="rounded bg-navy px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
       >
         Add item
       </button>
@@ -345,24 +353,24 @@ export function InventoryPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-slate-900">Inventory</h1>
+      <h1 className="text-2xl font-semibold text-navy">Inventory</h1>
 
       <ValuationSummary />
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
         <VendorsSection />
         <ImportControl />
       </div>
 
       <NewItemForm />
 
-      {items.isLoading && <p className="text-sm text-slate-500">Loading...</p>}
-      {items.data && items.data.length === 0 && <p className="text-sm text-slate-500">No inventory items tracked yet.</p>}
+      {items.isLoading && <p className="text-sm text-navy/60">Loading...</p>}
+      {items.data && items.data.length === 0 && <p className="text-sm text-navy/60">No inventory items tracked yet.</p>}
 
       {[...byCategory.entries()].map(([category, categoryItems]) => (
-        <div key={category} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="mb-1 text-sm font-semibold text-slate-900">{category}</h2>
-          <ul className="divide-y divide-slate-100">
+        <div key={category} className="rounded-lg border border-navy/15 bg-white p-4 shadow-sm">
+          <h2 className="mb-1 text-sm font-semibold text-navy">{category}</h2>
+          <ul className="divide-y divide-navy/10">
             {categoryItems.map((item) => (
               <InventoryRow key={item.id} item={item} />
             ))}

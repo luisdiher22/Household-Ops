@@ -26,8 +26,12 @@ async function refreshAccessToken(): Promise<AuthResponse> {
 
   // Use a bare axios call (not apiClient) to avoid the request interceptor
   // attaching the now-expired access token to the refresh call itself.
+  // activeHouseholdId carries forward whichever property the user last
+  // switched to (see usePropertySwitcher) -- otherwise a background refresh
+  // mid-session would silently drop them back to their home household.
   const response = await axios.post<AuthResponse>('/api/auth/refresh', {
     refreshToken: auth.refreshToken,
+    activeHouseholdId: auth.householdId,
   })
   saveAuth(response.data)
   return response.data

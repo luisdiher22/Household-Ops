@@ -78,4 +78,10 @@ public class JwtService {
     public UUID extractStaffId(Claims claims) {
         return UUID.fromString(claims.getSubject());
     }
+
+    /** Present on access tokens only -- see AuthenticatedPrincipal's activeHouseholdId constructor for why this can differ from the staff member's own household. */
+    public UUID extractHouseholdId(Claims claims) {
+        String value = claims.get(CLAIM_HOUSEHOLD_ID, String.class);
+        return value != null ? UUID.fromString(value) : null;
+    }
 }

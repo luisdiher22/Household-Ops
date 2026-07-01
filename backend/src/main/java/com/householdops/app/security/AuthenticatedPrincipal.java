@@ -33,8 +33,20 @@ public class AuthenticatedPrincipal implements UserDetails {
     private final boolean active;
 
     public AuthenticatedPrincipal(StaffMember staffMember) {
+        this(staffMember, null);
+    }
+
+    /**
+     * activeHouseholdId lets an Owner operate against a household other than
+     * their own (see HouseholdAccessGrant) without changing what "household
+     * scoped" means anywhere else -- every existing check just reads
+     * getHouseholdId() and gets the right value. Callers are responsible for
+     * validating the override is actually allowed (home household or a live
+     * grant) before constructing this; the constructor itself trusts it.
+     */
+    public AuthenticatedPrincipal(StaffMember staffMember, UUID activeHouseholdId) {
         this.staffId = staffMember.getId();
-        this.householdId = staffMember.getHousehold().getId();
+        this.householdId = activeHouseholdId != null ? activeHouseholdId : staffMember.getHousehold().getId();
         this.email = staffMember.getEmail();
         this.fullName = staffMember.getFullName();
         this.passwordHash = staffMember.getPasswordHash();

@@ -10,8 +10,8 @@ function ApprovalRow({ approval }: { approval: ApprovalRequest }) {
     <li className="space-y-2 py-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-900">{approval.justification ?? `${approval.subjectType} approval`}</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-sm font-medium text-navy">{approval.justification ?? `${approval.subjectType} approval`}</p>
+          <p className="text-xs text-navy/60">
             {approval.subjectType} · ${approval.amount}
           </p>
         </div>
@@ -21,7 +21,7 @@ function ApprovalRow({ approval }: { approval: ApprovalRequest }) {
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Decision note (optional)"
-          className="flex-1 rounded border border-slate-300 px-2 py-1 text-sm"
+          className="flex-1 rounded border border-navy/30 px-2 py-1 text-sm"
         />
         <button
           onClick={() => decide.mutate({ id: approval.id, approve: true, note })}
@@ -47,13 +47,13 @@ export function ApprovalsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-slate-900">Approvals</h1>
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        {approvals.isLoading && <p className="text-sm text-slate-500">Loading...</p>}
+      <h1 className="text-2xl font-semibold text-navy">Approvals</h1>
+      <div className="rounded-lg border border-navy/15 bg-white p-4 shadow-sm">
+        {approvals.isLoading && <p className="text-sm text-navy/60">Loading...</p>}
         {approvals.data && approvals.data.length === 0 && (
-          <p className="py-2 text-sm text-slate-500">Nothing waiting on your approval.</p>
+          <p className="py-2 text-sm text-navy/60">Nothing waiting on your approval.</p>
         )}
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-navy/10">
           {approvals.data?.map((approval) => (
             <ApprovalRow key={approval.id} approval={approval} />
           ))}

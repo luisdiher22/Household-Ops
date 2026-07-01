@@ -16,6 +16,8 @@ import com.householdops.app.household.PortfolioDtos.PropertySummary;
 import com.householdops.app.inventory.InventoryService;
 import com.householdops.app.inventory.InventoryStatusService;
 import com.householdops.app.security.AuthenticatedPrincipal;
+import com.householdops.app.staff.StaffMember;
+import com.householdops.app.staff.StaffMemberRepository;
 import com.householdops.app.staff.StaffRole;
 
 import lombok.RequiredArgsConstructor;
@@ -37,8 +39,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PortfolioService {
 
-    private final HouseholdRepository householdRepository;
     private final HouseholdAccessGrantRepository grantRepository;
+    private final StaffMemberRepository staffMemberRepository;
     private final InventoryService inventoryService;
     private final InventoryStatusService inventoryStatusService;
     private final ApprovalService approvalService;
@@ -49,8 +51,14 @@ public class PortfolioService {
             throw new AccessDeniedException("Only an Owner has a portfolio");
         }
 
-        Household primary = householdRepository.findById(principal.getHouseholdId())
-                .orElseThrow(() -> new ResourceNotFoundException("Household not found: " + principal.getHouseholdId()));
+        // Deliberately not principal.getHouseholdId() -- that reflects whatever
+        // property is currently active (see AuthenticatedPrincipal's
+        // activeHouseholdId), which could already be a granted household, not
+        // the caller's actual home. Re-fetching the staff member's own
+        // household FK is the only reliable source of "home" here.
+        StaffMember staffMember = staffMemberRepository.findById(principal.getStaffId())
+                .orElseThrow(() -> new ResourceNotFoundException("Staff member not found: " + principal.getStaffId()));
+        Household primary = staffMember.getHousehold();
 
         List<Household> households = new ArrayList<>();
         households.add(primary);

@@ -45,12 +45,15 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
+                        // Only login/refresh are unauthenticated by nature -- switch-household
+                        // acts on an existing session and needs a real principal, so it's
+                        // deliberately left off this list to fall through to anyRequest().authenticated().
+                        .requestMatchers("/api/auth/login", "/api/auth/refresh").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // The bundled React app's shell (mvn package -Pbundle-frontend):
                         // publicly loadable like any static site. Actual data access is
                         // still enforced at the /api/** layer above, not here.
-                        .requestMatchers("/", "/login", "/tasks", "/inventory", "/shopping-list", "/approvals", "/assistant").permitAll()
+                        .requestMatchers("/", "/login", "/tasks", "/inventory", "/shopping-list", "/approvals", "/assistant", "/portfolio", "/staff").permitAll()
                         .requestMatchers("/assets/**", "/index.html", "/favicon.svg").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

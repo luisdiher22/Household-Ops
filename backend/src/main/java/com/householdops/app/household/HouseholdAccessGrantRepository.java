@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface HouseholdAccessGrantRepository extends JpaRepository<HouseholdAccessGrant, UUID> {
 
     List<HouseholdAccessGrant> findByOwnerId(UUID ownerId);
+
+    boolean existsByOwnerIdAndHouseholdId(UUID ownerId, UUID householdId);
 }

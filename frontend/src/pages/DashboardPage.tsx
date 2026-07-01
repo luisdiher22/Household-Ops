@@ -9,11 +9,11 @@ function SummaryCard({ title, value, to, tone }: { title: string; value: string 
     <Link
       to={to}
       className={`block rounded-lg border p-5 shadow-sm transition hover:shadow-md ${
-        tone === 'warning' ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-white'
+        tone === 'warning' ? 'border-amber-200 bg-amber-50' : 'border-navy/15 bg-white'
       }`}
     >
-      <p className="text-sm text-slate-500">{title}</p>
-      <p className={`mt-1 text-3xl font-semibold ${tone === 'warning' ? 'text-amber-700' : 'text-slate-900'}`}>{value}</p>
+      <p className="text-sm text-navy/60">{title}</p>
+      <p className={`mt-1 text-3xl font-semibold ${tone === 'warning' ? 'text-amber-700' : 'text-navy'}`}>{value}</p>
     </Link>
   )
 }
@@ -34,8 +34,8 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Welcome back, {auth?.fullName.split(' ')[0]}</h1>
-        <p className="text-sm text-slate-500">Here's what's happening with the household.</p>
+        <h1 className="text-2xl font-semibold text-navy">Welcome back, {auth?.fullName.split(' ')[0]}</h1>
+        <p className="text-sm text-navy/60">Here's what's happening with the household.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
@@ -61,13 +61,13 @@ export function DashboardPage() {
       </div>
 
       {inventoryStatus.data && inventoryStatus.data.lowStockItems.length > 0 && (
-        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-slate-900">Low stock right now</h2>
-          <ul className="divide-y divide-slate-100">
+        <div className="rounded-lg border border-navy/15 bg-white p-5 shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-navy">Low stock right now</h2>
+          <ul className="divide-y divide-navy/10">
             {inventoryStatus.data.lowStockItems.map((item) => (
               <li key={item.id} className="flex items-center justify-between py-2 text-sm">
-                <span className="text-slate-700">{item.name}</span>
-                <span className="text-slate-500">
+                <span className="text-navy/90">{item.name}</span>
+                <span className="text-navy/60">
                   {item.currentQuantity} {item.unit} (reorder at {item.reorderThreshold})
                 </span>
               </li>

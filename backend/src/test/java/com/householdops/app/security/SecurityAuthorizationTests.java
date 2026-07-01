@@ -39,10 +39,14 @@ class SecurityAuthorizationTests {
     private ObjectMapper objectMapper;
 
     private UUID householdId;
+    private UUID miamiHouseholdId;
 
     @BeforeEach
     void setUp() {
         householdId = staffMemberRepository.findByEmailIgnoreCase("owner@householdops.dev")
+                .orElseThrow(() -> new IllegalStateException("Demo seed data not present -- run the app once to seed it"))
+                .getHousehold().getId();
+        miamiHouseholdId = staffMemberRepository.findByEmailIgnoreCase("manager-miami@householdops.dev")
                 .orElseThrow(() -> new IllegalStateException("Demo seed data not present -- run the app once to seed it"))
                 .getHousehold().getId();
     }
@@ -169,6 +173,59 @@ class SecurityAuthorizationTests {
                 .andReturn().getResponse().getContentAsString();
 
         org.assertj.core.api.Assertions.assertThat(body).contains("Aspen House", "Miami Beach Villa");
+    }
+
+    @Test
+    void staffCannotSwitchHousehold() throws Exception {
+        String token = login("staff@householdops.dev");
+
+        mockMvc.perform(post("/api/auth/switch-household")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"householdId\":\"" + miamiHouseholdId + "\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void ownerCannotSwitchToUngrantedHousehold() throws Exception {
+        String token = login("owner@householdops.dev");
+        UUID ungrantedHouseholdId = UUID.randomUUID();
+
+        mockMvc.perform(post("/api/auth/switch-household")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"householdId\":\"" + ungrantedHouseholdId + "\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void ownerCanSwitchToGrantedHouseholdAndActOnIt() throws Exception {
+        String token = login("owner@householdops.dev");
+
+        // Before switching, the Aspen-scoped token can't touch Miami's tasks.
+        mockMvc.perform(get("/api/households/{id}/tasks", miamiHouseholdId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+
+        String switchBody = mockMvc.perform(post("/api/auth/switch-household")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"householdId\":\"" + miamiHouseholdId + "\"}"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        String switchedToken = objectMapper.readTree(switchBody).get("accessToken").asText();
+        org.assertj.core.api.Assertions.assertThat(objectMapper.readTree(switchBody).get("householdId").asText())
+                .isEqualTo(miamiHouseholdId.toString());
+
+        // After switching, the new token grants access to Miami and no longer to Aspen.
+        mockMvc.perform(get("/api/households/{id}/tasks", miamiHouseholdId)
+                        .header("Authorization", "Bearer " + switchedToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/households/{id}/tasks", householdId)
+                        .header("Authorization", "Bearer " + switchedToken))
+                .andExpect(status().isForbidden());
     }
 
     private String newStaffJson(String email) {

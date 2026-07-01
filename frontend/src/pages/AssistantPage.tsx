@@ -31,8 +31,8 @@ export function AssistantPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Assistant</h1>
-        <p className="text-sm text-slate-500">Ask about inventory, tasks, approvals, or the shopping list -- grounded in your household's live data.</p>
+        <h1 className="text-2xl font-semibold text-navy">Assistant</h1>
+        <p className="text-sm text-navy/60">Ask about inventory, tasks, approvals, or the shopping list -- grounded in your household's live data.</p>
       </div>
 
       {history.length === 0 && (
@@ -41,7 +41,7 @@ export function AssistantPage() {
             <button
               key={s}
               onClick={() => ask(s)}
-              className="rounded-full border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+              className="rounded-full border border-navy/30 px-3 py-1.5 text-sm text-navy/70 hover:bg-ivory"
             >
               {s}
             </button>
@@ -52,19 +52,19 @@ export function AssistantPage() {
       <div className="space-y-4">
         {history.map((exchange, i) => (
           <div key={i} className="space-y-2">
-            <div className="ml-auto w-fit max-w-lg rounded-lg bg-slate-900 px-4 py-2 text-sm text-white">{exchange.question}</div>
+            <div className="ml-auto w-fit max-w-lg rounded-lg bg-navy px-4 py-2 text-sm text-white">{exchange.question}</div>
 
             {exchange.error && <div className="w-fit max-w-lg rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">{exchange.error}</div>}
 
             {exchange.response && (
-              <div className="w-fit max-w-lg space-y-2 rounded-lg border border-slate-200 bg-white px-4 py-3">
-                <p className="whitespace-pre-line text-sm text-slate-800">{exchange.response.answer}</p>
+              <div className="w-fit max-w-lg space-y-2 rounded-lg border border-navy/15 bg-white px-4 py-3">
+                <p className="whitespace-pre-line text-sm text-navy">{exchange.response.answer}</p>
                 {exchange.response.toolCalls.length > 0 && (
-                  <div className="border-t border-slate-100 pt-2">
-                    <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">Tools used</p>
+                  <div className="border-t border-navy/10 pt-2">
+                    <p className="mb-1 text-xs font-medium uppercase tracking-wide text-navy/40">Tools used</p>
                     <ul className="space-y-0.5">
                       {exchange.response.toolCalls.map((call, j) => (
-                        <li key={j} className="font-mono text-xs text-slate-500">
+                        <li key={j} className="font-mono text-xs text-navy/60">
                           {call.tool}({call.inputSummary})
                         </li>
                       ))}
@@ -75,7 +75,7 @@ export function AssistantPage() {
             )}
           </div>
         ))}
-        {assistantQuery.isPending && <div className="w-fit rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-400">Thinking...</div>}
+        {assistantQuery.isPending && <div className="w-fit rounded-lg border border-navy/15 bg-white px-4 py-2 text-sm text-navy/40">Thinking...</div>}
       </div>
 
       <form
@@ -89,12 +89,12 @@ export function AssistantPage() {
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="Ask a question about the household..."
-          className="flex-1 rounded border border-slate-300 px-3 py-2 text-sm"
+          className="flex-1 rounded border border-navy/30 px-3 py-2 text-sm"
         />
         <button
           type="submit"
           disabled={assistantQuery.isPending}
-          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+          className="rounded bg-navy px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
         >
           Ask
         </button>
