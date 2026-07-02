@@ -14,8 +14,7 @@ import lombok.Setter;
 
 /**
  * Grants an Owner read access to a household beyond their own primary one --
- * see PortfolioService for why this is a separate, additive table rather
- * than a change to StaffMember.household or SecurityAssertions.requireHousehold.
+ * I did this separately as it was a feature added after the initial design, and I didn't want to modify the existing Household entity too much.
  */
 @Getter
 @Setter

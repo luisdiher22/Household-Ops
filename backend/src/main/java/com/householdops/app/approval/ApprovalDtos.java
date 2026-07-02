@@ -1,3 +1,6 @@
+/*
+ApprovalDtos 
+*/
 package com.householdops.app.approval;
 
 import java.math.BigDecimal;
@@ -6,6 +9,7 @@ import java.util.UUID;
 
 public class ApprovalDtos {
 
+    
     public record ApprovalResponse(
             UUID id,
             UUID householdId,

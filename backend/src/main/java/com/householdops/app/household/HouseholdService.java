@@ -20,12 +20,14 @@ public class HouseholdService {
     private final HouseholdRepository householdRepository;
     private final StaffMemberRepository staffMemberRepository;
 
+    // Retrieves a household by its ID, throwing a ResourceNotFoundException if the household does not exist.
     @Transactional(readOnly = true)
     public Household getById(UUID id) {
         return householdRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Household not found: " + id));
     }
 
+    // Creates a new household based on the provided request data, setting default values for timezone and approval threshold if not specified.
     @Transactional
     public Household create(CreateHouseholdRequest request) {
         Household household = new Household();
@@ -40,6 +42,8 @@ public class HouseholdService {
         return householdRepository.save(household);
     }
 
+    // Updates an existing household with the provided request data, allowing for partial updates of fields such as name, address,
+    //  timezone, approval threshold, and principal user.
     @Transactional
     public Household update(UUID id, UpdateHouseholdRequest request) {
         Household household = getById(id);

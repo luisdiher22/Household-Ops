@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
  * household member can create/update inventory items -- Staff restocking the
  * pantry and updating counts is the normal day-to-day flow this whole
  * project exists for, not something to gate behind a role check. CSV import
- * is the one exception (bulk data entry / initial setup, see below).
+ * is the one exception 
  */
 @RestController
 @RequiredArgsConstructor
@@ -41,6 +41,7 @@ public class InventoryController {
     private final InventoryService inventoryService;
     private final InventoryStatusService inventoryStatusService;
 
+    //Get all inventory items for a specific household, ensuring that the authenticated principal has access to that household.
     @GetMapping("/api/households/{householdId}/inventory")
     public List<InventoryItemResponse> findByHousehold(
             @PathVariable UUID householdId,
@@ -49,6 +50,7 @@ public class InventoryController {
         return inventoryService.findByHousehold(householdId);
     }
 
+    // Retrieves the inventory status for a specific household, ensuring that the authenticated principal has access to that household.
     @GetMapping("/api/households/{householdId}/inventory/status")
     public InventoryStatusResponse status(
             @PathVariable UUID householdId,
@@ -57,6 +59,7 @@ public class InventoryController {
         return inventoryStatusService.computeStatus(householdId);
     }
 
+    // Retrieves the valuation of inventory for a specific household, ensuring that the authenticated principal has access to that household.
     @GetMapping("/api/households/{householdId}/inventory/valuation")
     public ValuationResponse valuation(
             @PathVariable UUID householdId,
@@ -64,7 +67,7 @@ public class InventoryController {
         SecurityAssertions.requireHousehold(principal, householdId);
         return inventoryService.valuation(householdId);
     }
-
+    // Retrieves the history of inventory adjustments for a specific inventory item, ensuring that the authenticated principal has access to the household associated with that item.
     @GetMapping("/api/inventory/{id}/history")
     public List<InventoryAdjustmentResponse> history(
             @PathVariable UUID id,
@@ -72,6 +75,7 @@ public class InventoryController {
         return inventoryService.history(id, principal.getHouseholdId());
     }
 
+    // Creates a new inventory item for a specific household, ensuring that the authenticated principal has access to that household.
     @PostMapping("/api/households/{householdId}/inventory")
     public InventoryItemResponse create(
             @PathVariable UUID householdId,
@@ -80,7 +84,7 @@ public class InventoryController {
         SecurityAssertions.requireHousehold(principal, householdId);
         return inventoryService.create(householdId, principal.getStaffId(), request);
     }
-
+    // Updates an existing inventory item, ensuring that the authenticated principal has access to the household associated with that item.
     @PatchMapping("/api/inventory/{id}")
     public InventoryItemResponse update(
             @PathVariable UUID id,
@@ -89,7 +93,8 @@ public class InventoryController {
         return inventoryService.update(id, principal.getHouseholdId(), principal.getStaffId(), request);
     }
 
-    /** Bulk onboarding is an Owner/Manager action -- same reasoning as vendor set-up (see VendorController). */
+    /** Bulk onboarding is an Owner/Manager action -- same reasoning as vendor set-up */
+    // Imports inventory items from a CSV file for a specific household.
     @PreAuthorize("hasAnyRole('OWNER', 'HOUSE_MANAGER')")
     @PostMapping("/api/households/{householdId}/inventory/import")
     public ImportResult importCsv(

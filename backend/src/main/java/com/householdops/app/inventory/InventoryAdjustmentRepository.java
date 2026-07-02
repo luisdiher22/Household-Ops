@@ -10,6 +10,6 @@ public interface InventoryAdjustmentRepository extends JpaRepository<InventoryAd
 
     List<InventoryAdjustment> findByInventoryItemIdOrderByOccurredAtDesc(UUID inventoryItemId, Pageable pageable);
 
-    /** Fetched once per household (not per item) so computing predictions for a whole list doesn't N+1 query. */
+   
     List<InventoryAdjustment> findByHouseholdIdAndReason(UUID householdId, AdjustmentReason reason);
 }

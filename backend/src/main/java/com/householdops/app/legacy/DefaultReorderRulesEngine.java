@@ -10,6 +10,7 @@ import com.householdops.app.inventory.ReorderRulesEngine;
  * config.LegacyRulesXmlConfig's @ImportResource. It still participates fully
  * in the container once loaded (autowirable, proxyable, etc.) -- only its
  * own definition lives outside annotation-based config.
+ * Just wanted to do something old school for a bit, and this is a good candidate for a rules engine that might be swapped out for a different implementation in the future.
  */
 public class DefaultReorderRulesEngine implements ReorderRulesEngine {
 

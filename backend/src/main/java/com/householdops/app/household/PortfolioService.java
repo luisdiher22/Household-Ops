@@ -23,18 +23,10 @@ import com.householdops.app.staff.StaffRole;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Deliberately its own authorization path rather than an extension of
- * SecurityAssertions.requireHousehold: that check (and everything built on
- * it -- every controller's household-scoping, JwtAuthenticationFilter's
- * re-derivation of the principal, the assistant's ToolContext) assumes one
- * household per staff member, and retrofitting it to understand grants
- * would touch every one of those call sites this late in the build.
- * Reading HouseholdAccessGrant directly here instead keeps that model
- * untouched. It's also intentionally read-only: an Owner sees a summary of
- * every property they have access to, but still has to be logged in as that
- * property's own staff to act on it day-to-day -- full cross-household
- * drill-down would need the wider change above and isn't attempted here.
- */
+    * Service for managing and retrieving information about a user's portfolio of households.
+    * This service is responsible for aggregating data from multiple households that an owner has access to,
+    * including their primary household and any additional households granted through HouseholdAccessGrant.
+    */
 @Service
 @RequiredArgsConstructor
 public class PortfolioService {
@@ -45,17 +37,14 @@ public class PortfolioService {
     private final InventoryStatusService inventoryStatusService;
     private final ApprovalService approvalService;
 
+    // Retrieves the portfolio of households for the authenticated principal, ensuring that only owners can access their portfolio.
     @Transactional(readOnly = true)
     public PortfolioResponse getPortfolio(AuthenticatedPrincipal principal) {
         if (principal.getRole() != StaffRole.OWNER) {
             throw new AccessDeniedException("Only an Owner has a portfolio");
         }
 
-        // Deliberately not principal.getHouseholdId() -- that reflects whatever
-        // property is currently active (see AuthenticatedPrincipal's
-        // activeHouseholdId), which could already be a granted household, not
-        // the caller's actual home. Re-fetching the staff member's own
-        // household FK is the only reliable source of "home" here.
+       // Fetch the staff member and their primary household, then gather all households they have access to
         StaffMember staffMember = staffMemberRepository.findById(principal.getStaffId())
                 .orElseThrow(() -> new ResourceNotFoundException("Staff member not found: " + principal.getStaffId()));
         Household primary = staffMember.getHousehold();
@@ -68,7 +57,7 @@ public class PortfolioService {
                 households.add(granted);
             }
         }
-
+        //
         List<PropertySummary> summaries = households.stream()
                 .map(household -> summarize(household, household.getId().equals(primary.getId())))
                 .toList();
@@ -76,6 +65,7 @@ public class PortfolioService {
         return new PortfolioResponse(summaries);
     }
 
+    // Summarizes the key information of a household, including its valuation, inventory status, and pending approvals.
     private PropertySummary summarize(Household household, boolean isPrimary) {
         var valuation = inventoryService.valuation(household.getId());
         var status = inventoryStatusService.computeStatus(household.getId());

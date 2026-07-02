@@ -16,6 +16,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final StaffMemberRepository staffMemberRepository;
 
+    // Loads a user by their email address, returning an AuthenticatedPrincipal that wraps the corresponding StaffMember. 
+    // Throws UsernameNotFoundException if no staff member with the given email exists.
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {

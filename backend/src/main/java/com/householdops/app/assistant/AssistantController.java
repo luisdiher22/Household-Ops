@@ -18,8 +18,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AssistantController {
 
+    // The service responsible for orchestrating assistant-related operations
     private final AssistantOrchestrationService assistantOrchestrationService;
 
+    // Handles POST requests to the /query endpoint, allowing users to submit questions to the assistant.
+    // The request body must contain a valid QueryRequest object, and the authenticated principal is injected
+    // to identify the user making the request. The method returns a QueryResponse containing the assistant
     @PostMapping("/query")
     public QueryResponse query(@Valid @RequestBody QueryRequest request, @AuthenticationPrincipal AuthenticatedPrincipal principal) {
         return assistantOrchestrationService.query(principal, request.question());

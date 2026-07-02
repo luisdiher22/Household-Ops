@@ -41,9 +41,7 @@ import com.householdops.app.task.TaskService;
 /**
  * Seeds one demo household with staff across all four roles, so the API and
  * (later) the frontend are demoable immediately after startup without any
- * manual setup. Runs through the real services, not raw repository saves,
- * so it also exercises the approval-threshold trigger on the "Repair pool
- * pump" task (estimated above the household's default threshold).
+ * manual setup. 
  */
 @Component
 public class DemoDataSeeder implements CommandLineRunner {

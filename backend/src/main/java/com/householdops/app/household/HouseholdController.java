@@ -30,19 +30,21 @@ public class HouseholdController {
 
     private final HouseholdService householdService;
 
-    /** "List" is just whichever single household the caller is currently scoped to (see AuthenticatedPrincipal's activeHouseholdId) -- for cross-household enumeration, see PortfolioController instead. */
+    /** "List" is just whichever single household the caller is currently scoped to 
+     * (see AuthenticatedPrincipal's activeHouseholdId) -- for cross-household enumeration, see PortfolioController instead. */
     @GetMapping
     public List<HouseholdResponse> findAll(@AuthenticationPrincipal AuthenticatedPrincipal principal) {
         return List.of(HouseholdResponse.from(householdService.getById(principal.getHouseholdId())));
     }
 
+    // Get a specific household by its ID, ensuring the caller has access to that household.
     @GetMapping("/{id}")
     public HouseholdResponse getById(@PathVariable UUID id, @AuthenticationPrincipal AuthenticatedPrincipal principal) {
         SecurityAssertions.requireHousehold(principal, id);
         return HouseholdResponse.from(householdService.getById(id));
     }
 
-    /** No household to scope against yet -- an OWNER provisioning an additional household (e.g. a second property). */
+    // Create a new household, restricted to users with the 'OWNER' role.
     @PreAuthorize("hasRole('OWNER')")
     @PostMapping
     public ResponseEntity<HouseholdResponse> create(@Valid @RequestBody CreateHouseholdRequest request) {
@@ -50,6 +52,7 @@ public class HouseholdController {
         return ResponseEntity.ok(HouseholdResponse.from(household));
     }
 
+    // Update an existing household, restricted to users with the 'OWNER' role and ensuring they have access to that household.
     @PreAuthorize("hasRole('OWNER')")
     @PatchMapping("/{id}")
     public HouseholdResponse update(

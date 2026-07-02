@@ -12,7 +12,7 @@ import com.householdops.app.assistant.AssistantDtos.ToolCallRecord;
 import com.householdops.app.security.AuthenticatedPrincipal;
 
 /**
- * Thin orchestration layer: Spring AI's ChatClient already runs the
+ *  Spring AI's ChatClient already runs the
  * tool-calling round-trip loop internally (send prompt -> model requests a
  * tool -> execute it -> send the result back -> repeat until a final
  * answer), so there's no hand-rolled loop to manage here. This just wires
@@ -36,14 +36,18 @@ public class AssistantOrchestrationService {
             before answering.
             """;
 
+    // The ChatClient for interacting with the AI model
+    // The AssistantTools for providing household-specific tool functionality
     private final ChatClient chatClient;
     private final AssistantTools assistantTools;
 
+    // Constructor for the AssistantOrchestrationService, initializing the ChatClient and AssistantTools
     public AssistantOrchestrationService(ChatClient.Builder chatClientBuilder, AssistantTools assistantTools) {
         this.chatClient = chatClientBuilder.defaultSystem(SYSTEM_PROMPT).build();
         this.assistantTools = assistantTools;
     }
 
+    // Handles a user query by sending it to the AI model along with the household context and audit log.
     public QueryResponse query(AuthenticatedPrincipal principal, String question) {
         List<ToolCallRecord> auditLog = new ArrayList<>();
 

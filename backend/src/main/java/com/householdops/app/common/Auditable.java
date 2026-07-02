@@ -20,6 +20,8 @@ import lombok.Setter;
 @Setter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
+// Abstract base class for entities that require auditing of creation and modification timestamps.
+//  This class provides common fields and behavior for all auditable entities in the application.
 public abstract class Auditable {
 
     @Id

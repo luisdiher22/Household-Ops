@@ -41,6 +41,7 @@ public class InventoryService {
     private final InventoryAdjustmentRepository adjustmentRepository;
     private final StaffMemberRepository staffMemberRepository;
 
+    // Retrieves all inventory items for a specific household, ensuring that the authenticated principal has access to that household.
     @Transactional(readOnly = true)
     public List<InventoryItemResponse> findByHousehold(UUID householdId) {
         List<InventoryItem> items = inventoryRepository.findByHouseholdId(householdId);
@@ -56,6 +57,7 @@ public class InventoryService {
                 .toList();
     }
 
+    // Retrieves a specific inventory item by its ID, ensuring that the authenticated principal has access to the household associated with that item.
     @Transactional(readOnly = true)
     public InventoryItem getById(UUID id, UUID callerHouseholdId) {
         InventoryItem item = inventoryRepository.findById(id)
@@ -63,7 +65,7 @@ public class InventoryService {
         SecurityAssertions.requireHousehold(callerHouseholdId, item.getHousehold().getId());
         return item;
     }
-
+    // Creates a new inventory item for a specific household, ensuring that the authenticated principal has access to that household.
     @CacheEvict(value = "inventoryStatus", key = "#householdId")
     @Transactional
     public InventoryItemResponse create(UUID householdId, UUID actingStaffId, CreateInventoryItemRequest request) {
@@ -95,12 +97,7 @@ public class InventoryService {
         return toResponse(item, vendorNameOrNull(item), List.of(), Instant.now());
     }
 
-    /**
-     * Evicts by callerHouseholdId rather than the loaded item's own household
-     * reference -- getById's SecurityAssertions check already guarantees
-     * they're equal, and this avoids depending on a lazy association still
-     * being resolvable by the time @CacheEvict's SpEL runs post-invocation.
-     */
+    // Updates an existing inventory item, ensuring that the authenticated principal has access to the household associated with that item.
     @CacheEvict(value = "inventoryStatus", key = "#callerHouseholdId")
     @Transactional
     public InventoryItemResponse update(UUID id, UUID callerHouseholdId, UUID actingStaffId, UpdateInventoryItemRequest request) {
@@ -139,6 +136,7 @@ public class InventoryService {
         return toResponse(item, vendorNameOrNull(item), consumptionHistoryFor(item.getId()), Instant.now());
     }
 
+    // Retrieves the valuation of inventory for a specific household, ensuring that the authenticated principal has access to that household.
     @Transactional(readOnly = true)
     public InventoryDtos.ValuationResponse valuation(UUID householdId) {
         List<InventoryItem> items = inventoryRepository.findByHouseholdId(householdId);
@@ -163,6 +161,7 @@ public class InventoryService {
         return new InventoryDtos.ValuationResponse(householdId, total, categoryValuations);
     }
 
+    // Retrieves the history of inventory adjustments for a specific inventory item, ensuring that the authenticated principal has access to the household associated with that item.
     @Transactional(readOnly = true)
     public List<InventoryDtos.InventoryAdjustmentResponse> history(UUID itemId, UUID callerHouseholdId) {
         InventoryItem item = getById(itemId, callerHouseholdId);
@@ -174,11 +173,8 @@ public class InventoryService {
     }
 
     /**
-     * Hand-rolled parsing for a well-defined internal format (header row,
-     * comma-separated, no quoting) rather than pulling in a CSV library --
-     * not meant to handle arbitrary Excel-exported files with embedded
-     * commas/quotes, just bulk onboarding a household's initial inventory.
-     * Bad rows are skipped and reported rather than failing the whole batch.
+     * Csv import format: name,category,unit,currentQuantity,reorderThreshold,reorderQuantity,unitCost
+     * (unitCost is optional)
      */
     @CacheEvict(value = "inventoryStatus", key = "#householdId")
     @Transactional
@@ -216,6 +212,7 @@ public class InventoryService {
         return new ImportResult(imported, errors);
     }
 
+    // Helper methods
     private void importRow(Household household, String line, UUID actingStaffId) {
         // name,category,unit,currentQuantity,reorderThreshold,reorderQuantity,unitCost
         String[] columns = line.split(",", -1);

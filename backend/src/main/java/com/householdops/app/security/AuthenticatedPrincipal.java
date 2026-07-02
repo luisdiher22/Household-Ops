@@ -16,10 +16,7 @@ import lombok.Getter;
 /**
  * Spring Security principal wrapping a StaffMember, carrying the extra
  * claims (staffId, householdId, role) services need for household-scoping
- * checks without re-querying the DB. Constructible directly from a
- * StaffMember so DemoDataSeeder can exercise the exact same service-layer
- * authorization path real HTTP requests do, instead of a parallel
- * unauthenticated bootstrap path.
+ * checks without re-querying the DB.
  */
 @Getter
 public class AuthenticatedPrincipal implements UserDetails {

@@ -21,13 +21,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Models Eleven Messages' "Approval message" pattern: a principal must sign off
- * before a task/shopping-list spend over the household's threshold proceeds.
- *
- * subjectType + subjectId is a soft reference to the HouseholdTask or
- * ShoppingListItem this approval gates, rather than two nullable FKs or a
- * polymorphic JPA hierarchy — simpler for a fixed, small set of subject types,
- * at the cost of no DB-level FK integrity on the subject (documented trade-off).
+ * A principal must sign off before a task/shopping-list spend over the household's threshold proceeds.
+
  */
 @Getter
 @Setter
@@ -36,38 +31,47 @@ import lombok.Setter;
 @Table(name = "approval_request")
 public class ApprovalRequest extends Auditable {
 
+    //The household this approval belongs to
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "household_id", nullable = false)
     private Household household;
 
+    // The staff member who requested this approval
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "requested_by_id", nullable = false)
     private StaffMember requestedBy;
 
-    /** Resolved from household.principalUser at creation time. */
+    // The staff member who is  the one who must approve or reject it
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "principal_id", nullable = false)
     private StaffMember principal;
 
+    // The type of the subject (task or shopping list item) that this approval request is for
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     private ApprovalSubjectType subjectType;
 
+    // The ID of the subject (task or shopping list item) that this approval request is for
     @Column(nullable = false)
     private UUID subjectId;
 
+    // The amount of money that this approval request is for
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
+    // The justification for this approval request
     @Column(columnDefinition = "text")
     private String justification;
 
+    // The status of this approval request (pending, approved, or rejected)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     private ApprovalStatus status = ApprovalStatus.PENDING;
 
+    // The timestamp when this approval request was decided (approved or rejected)
     private Instant decidedAt;
 
+    // The note provided by the principal when deciding this approval request
     @Column(columnDefinition = "text")
     private String decisionNote;
 }

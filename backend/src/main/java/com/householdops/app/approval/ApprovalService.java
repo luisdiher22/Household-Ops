@@ -23,16 +23,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ApprovalService {
 
+
+    // The repository for managing approval requests
     private final ApprovalRepository approvalRepository;
 
-    /**
-     * Central threshold-trigger rule: if amount exceeds the household's
-     * approvalThreshold, a PENDING ApprovalRequest is created against the
-     * household's principal and the task/shopping-list write proceeds
-     * un-gated (creation always succeeds) — but the subject can't be marked
-     * complete/purchased while a PENDING approval exists for it, enforced
-     * by callers via hasPendingApproval.
-     */
+   // Creates a new approval request if the amount exceeds the household's approval threshold. 
+   // Returns an Optional containing the created ApprovalRequest, or an empty Optional if no approval is needed.
     @Transactional
     public Optional<ApprovalRequest> requestIfOverThreshold(
             Household household,
@@ -42,16 +38,18 @@ public class ApprovalService {
             BigDecimal amount,
             String justification) {
 
+        // If the amount is null or less than or equal to the household's approval threshold, no approval is needed.            
         if (amount == null || amount.compareTo(household.getApprovalThreshold()) <= 0) {
             return Optional.empty();
         }
 
+        
         StaffMember principal = household.getPrincipalUser();
         if (principal == null) {
             throw new BusinessRuleViolationException(
                     "Household " + household.getId() + " has no principal assigned to approve this request");
         }
-
+        //If the amount exceeds the threshold and the household has a principal, create a new approval request and save it to the repository.
         ApprovalRequest request = new ApprovalRequest();
         request.setHousehold(household);
         request.setRequestedBy(requestedBy);
@@ -61,15 +59,18 @@ public class ApprovalService {
         request.setAmount(amount);
         request.setJustification(justification);
 
+        // Save the approval request and return it wrapped in an Optional
         return Optional.of(approvalRepository.save(request));
     }
 
+    // Checks if there is a pending approval request for the given subject type and subject ID.
     @Transactional(readOnly = true)
     public boolean hasPendingApproval(ApprovalSubjectType subjectType, UUID subjectId) {
         return approvalRepository.findBySubjectTypeAndSubjectIdAndStatus(subjectType, subjectId, ApprovalStatus.PENDING)
                 .isPresent();
     }
 
+    // Finds approval requests for a given household, optionally filtered by status, with pagination support.
     @Transactional(readOnly = true)
     public Page<ApprovalRequest> findByHousehold(UUID householdId, ApprovalStatus status, Pageable pageable) {
         return status != null
@@ -77,26 +78,27 @@ public class ApprovalService {
                 : approvalRepository.findByHouseholdId(householdId, pageable);
     }
 
+    // Decides an approval request by either approving or rejecting it, based on the provided decision.
+    // Throws an exception if the caller is not the assigned principal or if the request has already been decided.
     @Transactional
     public ApprovalRequest decide(UUID id, UUID callerStaffId, DecideApprovalRequest decision) {
         ApprovalRequest request = approvalRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Approval request not found: " + id));
 
-        // Being an OWNER isn't enough on its own -- must be the specific
-        // principal this request was raised against (an owner of a different
-        // household shouldn't be able to decide it).
+        // Ensure that the caller is the assigned principal for this approval request
         if (!request.getPrincipal().getId().equals(callerStaffId)) {
             throw new AccessDeniedException("Only the assigned principal can decide approval request " + id);
         }
-
+        // Ensure that the approval request has not already been decided
         if (request.getStatus() != ApprovalStatus.PENDING) {
             throw new BusinessRuleViolationException("Approval request " + id + " has already been decided");
         }
-
+        // Update the approval request's status, decided timestamp, and decision note based on the provided decision
         request.setStatus(decision.approve() ? ApprovalStatus.APPROVED : ApprovalStatus.REJECTED);
         request.setDecidedAt(Instant.now());
         request.setDecisionNote(decision.note());
 
+        // Save the updated approval request and return it
         return request;
     }
 }

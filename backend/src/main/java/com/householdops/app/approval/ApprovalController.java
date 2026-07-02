@@ -1,3 +1,6 @@
+/*
+Approval controlller. Handles requests for approvals, including listing approvals for a household and deciding on an approval request.
+*/
 package com.householdops.app.approval;
 
 import java.util.UUID;
@@ -24,8 +27,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ApprovalController {
 
+    //Role check 
     private final ApprovalService approvalService;
 
+    //Checks if the user has access to the household and returns a list of approvals 
     @GetMapping("/api/households/{householdId}/approvals")
     public Page<ApprovalResponse> findByHousehold(
             @PathVariable UUID householdId,
@@ -36,8 +41,9 @@ public class ApprovalController {
         return approvalService.findByHousehold(householdId, status, pageable).map(ApprovalResponse::from);
     }
 
+
     // Role check here narrows it to Owners; ApprovalService.decide() then checks
-    // the caller is *this request's specific* principal, since a different
+    // the caller is this household's principal, since a different
     // household's Owner shouldn't be able to decide someone else's approval.
     @PreAuthorize("hasRole('OWNER')")
     @PostMapping("/api/approvals/{id}/decide")

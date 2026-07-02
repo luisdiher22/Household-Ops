@@ -37,6 +37,7 @@ public class AuthController {
     private final StaffMemberRepository staffMemberRepository;
     private final HouseholdAccessGrantRepository accessGrantRepository;
 
+    // Handles user login by authenticating the provided email and password, returning an authentication response with access and refresh tokens.
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody LoginRequest request) {
         var auth = authenticationManager.authenticate(
@@ -50,10 +51,10 @@ public class AuthController {
      * JwtService.generateRefreshToken), so the caller passes back whichever
      * household was active in their expiring access token. If it's no longer
      * valid (grant revoked, role changed), this silently falls back to the
-     * staff member's own household rather than failing the refresh -- a
-     * background token refresh shouldn't force a surprise logout over a
-     * lost portfolio grant.
+     * staff member's own household rather than failing the refresh 
      */
+
+    // Unlike switchHousehold(), this is a silent fallback rather than a user action, so an invalid household is not an error.
     @PostMapping("/refresh")
     public AuthResponse refresh(@Valid @RequestBody RefreshRequest request) {
         Claims claims = jwtService.parseClaims(request.refreshToken());

@@ -33,6 +33,8 @@ public class JwtService {
         this.signingKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
+// Generates a JWT access token for the given authenticated principal, including claims for staff ID, household ID, and role,
+//  with an expiration time based on the configured access token TTL.
     public String generateAccessToken(AuthenticatedPrincipal principal) {
         Instant now = Instant.now();
         return Jwts.builder()
@@ -46,7 +48,8 @@ public class JwtService {
                 .compact();
     }
 
-    /** Deliberately carries only the subject, not role/householdId -- AuthController.refresh() re-reads those fresh from the DB, so a role change or deactivation takes effect on the next refresh instead of surviving until this long-lived token expires. */
+    /** Deliberately carries only the subject, not role/householdId -- AuthController.refresh() re-reads those fresh from the DB, 
+     * so a role change or deactivation takes effect on the next refresh instead of surviving until this long-lived token expires. */
     public String generateRefreshToken(AuthenticatedPrincipal principal) {
         Instant now = Instant.now();
         return Jwts.builder()
@@ -58,7 +61,7 @@ public class JwtService {
                 .compact();
     }
 
-    /** Throws io.jsonwebtoken.JwtException (or a subclass) for any invalid/expired/tampered token. */
+    /** Throws exception for any invalid/expired/tampered token. */
     public Claims parseClaims(String token) {
         return Jwts.parser()
                 .verifyWith(signingKey)

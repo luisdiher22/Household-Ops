@@ -9,8 +9,7 @@ import java.util.List;
  * history: total consumed since the earliest recorded consumption, divided
  * by the days elapsed, gives a daily rate; currentQuantity / rate gives the
  * prediction. Deliberately a simple average over the whole history rather
- * than a weighted/exponential-decay model -- easy to explain, and a
- * reasonable amount of sophistication for what this needs to do.
+ * than a weighted/exponential-decay model 
  *
  * Takes `now` as a parameter instead of calling Instant.now() internally so
  * it's trivially testable with fixed inputs.

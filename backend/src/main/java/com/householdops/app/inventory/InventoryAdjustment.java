@@ -23,10 +23,10 @@ import lombok.Setter;
  * (who changed what, when) and the raw data the consumption-rate
  * prediction is computed from.
  *
- * occurredAt is separate from Auditable's inherited createdAt: createdAt is
- * "when this row was written," occurredAt is "when the change actually
- * happened" (matters if someone logs an adjustment after the fact, e.g. an
- * end-of-day reconciliation, and lets seed data represent real history).
+ * occurredAt is separate from Auditable's inherited createdAt:
+ * createdAt is "when this row was written," 
+ * occurredAt is "when the change actually happened" 
+ * (matters if someone logs an adjustment after the fact, e.g. an end-of-day reconciliation, and lets seed data represent real history).
  */
 @Getter
 @Setter

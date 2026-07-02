@@ -16,6 +16,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+// Represents a household entity in the application, containing information such as name, address, timezone, principal user, and approval threshold.
+// Extends the Auditable class to inherit common auditing fields like createdAt and updatedAt.
 @Getter
 @Setter
 @NoArgsConstructor
@@ -37,6 +39,7 @@ public class Household extends Auditable {
     @JoinColumn(name = "principal_user_id")
     private StaffMember principalUser;
 
+    // The threshold above which spend requests require the principal's approval. 
     @Column(name = "approval_threshold", nullable = false, precision = 12, scale = 2)
     private BigDecimal approvalThreshold = BigDecimal.valueOf(250);
 }

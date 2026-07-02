@@ -32,7 +32,7 @@ public class InventoryDtos {
             boolean expiringSoon,
             Integer predictedDaysUntilEmpty) {
 
-        /** vendorName and predictedDaysUntilEmpty come from batch-fetched context (see InventoryService), not the entity alone -- avoids an N+1 query per item. */
+        /** vendorName and predictedDaysUntilEmpty come from batch-fetched context (see InventoryService), not the entity alone */
         public static InventoryItemResponse from(InventoryItem item, String vendorName, Integer predictedDaysUntilEmpty) {
             BigDecimal totalValue = item.getUnitCost() != null
                     ? item.getUnitCost().multiply(BigDecimal.valueOf(item.getCurrentQuantity()))
