@@ -1,8 +1,8 @@
 # Household Ops
 
-A household operations assistant  — fills the gap between arrival-readiness checklists and the ongoing, day-to-day churn of running a household: what's low on stock, who's doing what, and what needs the owner's sign-off before it happens.
+A household operations and inventory management assistant  — fills the gap between arrival-readiness checklists and the ongoing, day-to-day churn of running a household: what's low on stock, who's doing what, and what needs the owner's sign-off before it happens.
 
-I made a little live demo on video check it out! https://youtu.be/h1L99WgEAqc
+I made a little live demo on video check it out! https://youtu.be/tHZq9HUNzqs
 
 ## Why this project
 
@@ -10,8 +10,7 @@ This was built as a portfolio project while taking inspiration from a company th
 
 What's missing from that picture is the boring, constant stuff: the pantry running low, an errand that needs assigning to a specific staff member, a repair that costs more than the household's casual-spend threshold and needs the owner to actually say yes. This project is that fifth assistant — modeled deliberately on the shape of the other two patterns already in place there:
 
-- **Approval flow** mirrors a "threshold spend needs the principal's sign-off" pattern: tasks and shopping-list items over a household's configured threshold automatically raise an approval request against that household's specific principal, and can't be marked complete until it's decided.
-- **The assistant** answers natural-language questions the same way a "capital calls due this week" query would need to work — grounded in live structured data via tool-calling, not a document search.
+
 
 ## Architecture
 
@@ -48,13 +47,6 @@ flowchart TB
     Assistant -->|6 read-only tools,<br/>household injected server-side| Service
     Assistant <--> Claude
 ```
-
-## Things worth noticing
-
-- **One bean is deliberately wired via classic Spring XML**
-- **Redis backs a real cache-aside**, not a decorative one: the inventory low-stock aggregation is the most-read, moderately expensive computed view in the system (hit by the dashboard and by the assistant's inventory tool on nearly every query).
-- **The assistant uses tool-calling over six fixed, read-only queries, not RAG.** The household a query is scoped to always comes from the authenticated caller's JWT, server-side — the model never supplies or chooses it, so there's no path for a prompt to leak another household's data.
-- **Multi-property support is additive, not a retrofit**: an Owner overseeing more than one household is modeled as a separate `HouseholdAccessGrant` table with its own read-only `/portfolio` endpoint, rather than reworking the single-household assumption baked into every existing controller.
 
 
 ## Tech stack
